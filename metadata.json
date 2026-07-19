@@ -1,0 +1,6 @@
+{
+  "name": "StadiaOS",
+  "description": "GenAI-Enabled Smart Stadium & Tournament Operations Platform for FIFA World Cup 2026. Features include Crowd Pulse, Ops Copilot, Polyglot Concierge, and Green Ops Advisor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
