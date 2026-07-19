@@ -11,15 +11,21 @@ describe('useContainerWidth', () => {
     observeMock = vi.fn();
     disconnectMock = vi.fn();
     
-    mockResizeObserver = vi.fn((callback) => ({
-      observe: observeMock,
-      disconnect: disconnectMock,
-      unobserve: vi.fn(),
-      // expose callback to trigger it manually
-      trigger: callback
-    }));
+    class MockResizeObserver {
+      observe = observeMock;
+      disconnect = disconnectMock;
+      unobserve = vi.fn();
+      trigger: any;
+      constructor(callback: any) {
+        this.trigger = callback;
+        // save the instance so we can trigger it
+        if (!mockResizeObserver) mockResizeObserver = { instances: [] };
+        if (!mockResizeObserver.instances) mockResizeObserver.instances = [];
+        mockResizeObserver.instances.push(this);
+      }
+    }
 
-    vi.stubGlobal('ResizeObserver', mockResizeObserver);
+    vi.stubGlobal('ResizeObserver', MockResizeObserver);
   });
 
   afterEach(() => {
@@ -27,25 +33,13 @@ describe('useContainerWidth', () => {
   });
 
   it('initializes with width 1200 and mounted false, then updates on mount', () => {
-    // Need a mock element
-    const mockRef = {
-      current: {
-        offsetWidth: 800
-      }
-    };
-    
     const { result, unmount } = renderHook(() => {
       const hookResult = useContainerWidth();
-      // manually assign ref for testing if needed, though useContainerWidth returns containerRef.
-      // We will override the ref's current value before the effect runs if possible, 
-      // but in React 18 useEffect runs after paint. So we can just set it after render and trigger resize.
+      (hookResult.containerRef as any).current = { offsetWidth: 800 };
       return hookResult;
     });
 
     expect(result.current.mounted).toBe(true);
-    
-    // Set the ref current
-    (result.current.containerRef as any).current = { offsetWidth: 800 };
     
     act(() => {
       window.dispatchEvent(new Event('resize'));
@@ -59,12 +53,14 @@ describe('useContainerWidth', () => {
   });
 
   it('updates width when ResizeObserver fires', () => {
-    const { result } = renderHook(() => useContainerWidth());
-    
-    (result.current.containerRef as any).current = { offsetWidth: 950 };
+    const { result } = renderHook(() => {
+      const hookResult = useContainerWidth();
+      (hookResult.containerRef as any).current = { offsetWidth: 950 };
+      return hookResult;
+    });
     
     act(() => {
-      const observerInstance = mockResizeObserver.mock.results[0].value;
+      const observerInstance = mockResizeObserver.instances[0];
       observerInstance.trigger();
     });
 

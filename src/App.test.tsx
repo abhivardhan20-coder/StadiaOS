@@ -22,6 +22,19 @@ vi.mock('./components/auth/AuthFlow', () => ({
 // Mock ResizeObserver for any child components using useContainerWidth
 vi.stubGlobal('ResizeObserver', mockResizeObserver);
 
+const mockLocalStorage = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+};
+vi.stubGlobal('localStorage', mockLocalStorage);
+
+vi.stubGlobal('matchMedia', vi.fn(() => ({
+  matches: false,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+})));
+
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,12 +59,12 @@ describe('App', () => {
     await waitFor(() => {
       // In CommandCenter or Header, the title might be displayed or we can check sidebar active item
       // We know 'Overview' tab is in Sidebar
-      const crowdLink = screen.getByRole('button', { name: /crowd pulse/i });
+      const crowdLink = screen.getByRole('button', { name: /crowd intelligence/i });
       expect(crowdLink).toBeDefined();
     });
 
     // Click on another tab in the sidebar
-    const crowdTab = screen.getByRole('button', { name: /crowd pulse/i });
+    const crowdTab = screen.getByRole('button', { name: /crowd intelligence/i });
     fireEvent.click(crowdTab);
 
     // Assert that the visible panel is updated (e.g., activeTab changes, and CrowdPulse component renders)

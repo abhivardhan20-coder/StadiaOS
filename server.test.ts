@@ -1,5 +1,7 @@
+// @vitest-environment node
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import request from 'supertest';
+
 import { wayfinderSchema, polyglotSchema } from './server';
 
 vi.mock('@google/genai', () => {
@@ -8,13 +10,15 @@ vi.mock('@google/genai', () => {
     yield { text: 'mock response part 2' };
   };
   
+  class MockGoogleGenAI {
+    models = { 
+      generateContent: vi.fn().mockResolvedValue({ text: JSON.stringify({ translatedText: 'test' }) }),
+      generateContentStream: vi.fn().mockReturnValue(mockGenerateContentStream()),
+    };
+  }
+
   return {
-    GoogleGenAI: vi.fn().mockImplementation(() => ({
-      models: { 
-        generateContent: vi.fn().mockResolvedValue({ text: JSON.stringify({ translatedText: 'test' }) }),
-        generateContentStream: vi.fn().mockReturnValue(mockGenerateContentStream()),
-      },
-    })),
+    GoogleGenAI: MockGoogleGenAI,
   };
 });
 

@@ -205,6 +205,9 @@ ${JSON.stringify(context, null, 2)}`;
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return next(error);
+    }
     console.log("Gemini API quota exceeded in /api/ops-copilot, using offline mock data.");
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -254,6 +257,9 @@ Latest User Text: "${text}"`,
     }
     res.json(result);
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return next(error);
+    }
     console.log("Gemini API quota exceeded in /api/polyglot, using offline mock data.");
     res.json({
       translatedText: "(Mock Translation) El servicio de IA está experimentando alta demanda.",
@@ -417,6 +423,9 @@ Schema required: {
       throw new Error("invalid_model_response");
     }
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return next(error);
+    }
     console.log("Gemini API error in /api/wayfinder, using offline mock data.");
     res.json({
       destination: req.body?.destination || "Unknown",
