@@ -289,7 +289,7 @@ return (
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setSelectedService(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1">
+                <button onClick={() => setSelectedService(null)} aria-label="Close details" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1">
                   <XCircle className="h-6 w-6" />
                 </button>
               </div>

@@ -201,7 +201,7 @@ export function StaffManagement() {
                 className="pl-9 pr-4 py-2 w-full md:w-64 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
               />
             </div>
-            <button className="flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition-colors shadow-sm">
+            <button aria-label="Add new staff member" className="flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition-colors shadow-sm">
               <Plus className="h-5 w-5" />
             </button>
           </div>
@@ -297,6 +297,7 @@ export function StaffManagement() {
               </div>
               <button 
                 onClick={() => setSelectedEmployee(null)} 
+                aria-label="Close details panel"
                 className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
                 <X className="h-5 w-5" />
@@ -433,7 +434,7 @@ export function StaffManagement() {
                       <div className="text-xs text-slate-500 mb-1">Direct Line</div>
                       <div className="font-medium text-sm text-slate-900 dark:text-white">{selectedEmployee.phone}</div>
                     </div>
-                    <button className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center hover:bg-indigo-200 transition-colors">
+                    <button aria-label="Call supervisor" className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center hover:bg-indigo-200 transition-colors">
                       <Phone className="h-4 w-4" />
                     </button>
                   </div>
@@ -447,7 +448,7 @@ export function StaffManagement() {
                       </div>
                       <div className="text-sm text-rose-700 dark:text-rose-300 mt-1">{selectedEmployee.emergencyContact.phone}</div>
                     </div>
-                    <button className="h-8 w-8 rounded-full bg-rose-200 dark:bg-rose-500/30 text-rose-700 dark:text-rose-300 flex items-center justify-center hover:bg-rose-300 transition-colors">
+                    <button aria-label="Call escalation contact" className="h-8 w-8 rounded-full bg-rose-200 dark:bg-rose-500/30 text-rose-700 dark:text-rose-300 flex items-center justify-center hover:bg-rose-300 transition-colors">
                       <Phone className="h-4 w-4" />
                     </button>
                   </div>
