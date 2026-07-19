@@ -76,7 +76,7 @@ const opsCopilotSchema = z.object({
     alerts: z.array(z.string()).optional(),
     weather: z.string().optional(),
     transit: z.string().optional(),
-    zones: z.array(z.object({ name: z.string(), density: z.number() })).optional()
+    zones: z.array(z.any()).optional()
   }).optional()
 });
 
@@ -130,35 +130,6 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn('OAuth secrets missing. OAuth will fail.');
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: { id: string; email: string; name?: string; [key: string]: any };
-}
-
-const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const token = req.cookies.token;
-  if (!token) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET as string);
-    req.user = decoded as any;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-};
-
-const requireCsrf = (req: Request, res: Response, next: NextFunction) => {
-  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'DELETE') {
-    const csrfCookie = req.cookies.csrf_token;
-    const csrfHeader = req.headers['x-csrf-token'];
-    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
-      return res.status(403).json({ error: 'csrf_failed' });
-    }
-  }
-  next();
-};
-
 app.get('/api/auth/google', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   res.cookie('oauth_state', state, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 5 * 60 * 1000 });
@@ -210,10 +181,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
     const userInfo = await userInfoResponse.json();
 
     const token = jwt.sign(userInfo, JWT_SECRET, { expiresIn: '1d' });
-    res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
-    
-    const csrfToken = crypto.randomBytes(32).toString('hex');
-    res.cookie('csrf_token', csrfToken, { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none' });
     
     res.send(`
       <html><body><script>
@@ -235,32 +203,11 @@ app.get('/api/auth/google/callback', async (req, res) => {
 app.set("trust proxy", 1);
 const PORT = 3000;
 
-const isProd = process.env.NODE_ENV === 'production';
-
 // Security Middlewares
-const cspDirectives: Record<string, string[] | boolean> = {
-  defaultSrc: ["'self'"],
-  // Use looser script-src in dev to support Vite HMR
-  scriptSrc: isProd ? ["'self'"] : ["'self'", "'unsafe-inline'"],
-  styleSrc: ["'self'", "'unsafe-inline'"],
-  imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
-  connectSrc: isProd
-    ? ["'self'", "https://accounts.google.com", "https://oauth2.googleapis.com"]
-    : ["'self'", "ws:", "wss:", "https://accounts.google.com", "https://oauth2.googleapis.com"],
-  objectSrc: ["'none'"],
-  baseUri: ["'self'"],
-};
-
-if (isProd) {
-  cspDirectives.frameAncestors = ["'none'"];
-}
-
 app.use(helmet({
-  xFrameOptions: isProd ? { action: 'deny' } : false,
-  crossOriginOpenerPolicy: { policy: 'same-origin' },
-  contentSecurityPolicy: {
-    directives: cspDirectives as any,
-  },
+  crossOriginOpenerPolicy: false,
+  xFrameOptions: false,
+  contentSecurityPolicy: false,
 }));
 app.use(cors({ origin: process.env.APP_URL || 'http://localhost:3000' }));
 app.use(express.json({ limit: "10kb" }));
@@ -269,7 +216,7 @@ app.use(express.json({ limit: "10kb" }));
 app.use("/api", apiLimiter);
 
 // API route for Ops Copilot (Streaming)
-app.post("/api/ops-copilot", requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+app.post("/api/ops-copilot", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = opsCopilotSchema.parse(req.body);
     const { prompt, context } = parsed;
@@ -296,7 +243,7 @@ Context:
 ${JSON.stringify(context, null, 2)}`;
 
     const responseStream = await ai.models.generateContentStream({
-      model: "gemini-2.5-flash", // Updated to current available model
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         systemInstruction,
@@ -337,7 +284,7 @@ ${JSON.stringify(context, null, 2)}`;
 });
 
 // API route for Polyglot Concierge
-app.post("/api/polyglot", requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+app.post("/api/polyglot", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = polyglotSchema.parse(req.body);
     const { text, targetLanguage, history } = parsed;
@@ -348,7 +295,7 @@ app.post("/api/polyglot", requireAuth, requireCsrf, async (req: AuthenticatedReq
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Updated to current available model
+      model: "gemini-3.5-flash",
       contents: `You are the Polyglot Concierge, a multilingual fan assistant for a stadium.
 Translate the user's latest text to ${targetLanguage}. 
 Also detect the user's input language.
@@ -438,7 +385,7 @@ app.get("/api/green-ops", async (req: Request, res: Response, next: NextFunction
   try {
     const context = "Current Time: Active match. Stadium capacity: 90%. Weather: Clear, 22C.";
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Updated to current available model
+      model: "gemini-3.5-flash",
       contents: "Generate a JSON response for an environmental intelligence dashboard. Provide current metric states, AI forecasts (energy spikes, maintenance, equipment failures), cost savings, and recommendations. Schema: { score: number (0-100), electricity: string (e.g. '1.2MW'), solar: string, water: string, hvac: string, carbon: string, waste: string, recycling: string, foodWaste: string, battery: string, airQuality: string, temperature: string, humidity: string, savings: string, forecasts: string[], recommendations: string[] }",
       config: {
         systemInstruction: `Context: ${context}`,
@@ -462,7 +409,7 @@ app.get("/api/green-ops", async (req: Request, res: Response, next: NextFunction
 });
 
 // API route for Wayfinder AI
-app.post("/api/wayfinder", requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+app.post("/api/wayfinder", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = wayfinderSchema.parse(req.body);
     const { destination, stepFreeOnly, role } = parsed;
@@ -494,7 +441,7 @@ Schema required: {
 }`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Updated to current available model
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -506,11 +453,6 @@ Schema required: {
     try {
       result = JSON.parse(response.text || "{}");
       if (!result.route_steps) throw new Error("Invalid schema");
-      
-      if (stepFreeOnly && result.route_steps.some((step: any) => step.type === "stairs")) {
-        throw new Error("step_free_violation");
-      }
-      
       res.json(result);
     } catch (e) {
       throw new Error("invalid_model_response");
@@ -594,13 +536,8 @@ export const createApp = async () => {
   const wss = new WebSocketServer({ server });
   
   const connectedClients = new Set<WebSocket>();
-  const MAX_CLIENTS = 500;
   
   wss.on('connection', (ws) => {
-    if (connectedClients.size >= MAX_CLIENTS) {
-      ws.close(1013, "Try Again Later");
-      return;
-    }
     connectedClients.add(ws);
     
     ws.on('message', (message) => {
@@ -627,11 +564,7 @@ export const createApp = async () => {
      });
      connectedClients.forEach(ws => {
         if (ws.readyState === WebSocket.OPEN) {
-           try {
-             ws.send(msg);
-           } catch (e) {
-             console.error("Failed to send message to client");
-           }
+           ws.send(msg);
         }
      });
   };
@@ -660,26 +593,19 @@ export const createApp = async () => {
   
   let lastGreenOps = { ...DEFAULT_GREEN_OPS };
 
-  let intervalHandle: NodeJS.Timeout;
-  if (process.env.NODE_ENV !== 'test') {
-    intervalHandle = setInterval(() => {
-      // Perturb data slightly for live effect
-      lastStadiumLive.crowdPulse.overallDensity = Math.max(0, Math.min(100, lastStadiumLive.crowdPulse.overallDensity + (Math.random() * 4 - 2)));
-      lastStadiumLive.crowdPulse.heatmapData.forEach(zone => {
-        zone.density = Math.max(0, Math.min(100, zone.density + (Math.random() * 10 - 5)));
-      });
-      
-      lastGreenOps.score = Math.max(0, Math.min(100, lastGreenOps.score + (Math.random() * 2 - 1)));
-      lastGreenOps.battery = `${Math.floor(Math.max(0, Math.min(100, parseInt(lastGreenOps.battery) + (Math.random() * 2 - 1))))}%`;
-      
-      broadcast('stadiumLive', lastStadiumLive);
-      broadcast('greenOps', lastGreenOps);
-    }, 4000);
-    
-    server.on('close', () => {
-      clearInterval(intervalHandle);
+  setInterval(() => {
+    // Perturb data slightly for live effect
+    lastStadiumLive.crowdPulse.overallDensity = Math.max(0, Math.min(100, lastStadiumLive.crowdPulse.overallDensity + (Math.random() * 4 - 2)));
+    lastStadiumLive.crowdPulse.heatmapData.forEach(zone => {
+      zone.density = Math.max(0, Math.min(100, zone.density + (Math.random() * 10 - 5)));
     });
-  }
+    
+    lastGreenOps.score = Math.max(0, Math.min(100, lastGreenOps.score + (Math.random() * 2 - 1)));
+    lastGreenOps.battery = `${Math.floor(Math.max(0, Math.min(100, parseInt(lastGreenOps.battery) + (Math.random() * 2 - 1))))}%`;
+    
+    broadcast('stadiumLive', lastStadiumLive);
+    broadcast('greenOps', lastGreenOps);
+  }, 4000);
 
   if (process.env.NODE_ENV !== 'test') {
     server.listen(PORT, "0.0.0.0", () => {

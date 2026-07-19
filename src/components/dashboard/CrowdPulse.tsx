@@ -267,7 +267,7 @@ export function CrowdPulse() {
                 {timelineIndex === 18 ? (
                   <span className="flex items-center gap-1.5 text-rose-500"><Radio className="h-3 w-3 animate-pulse" /> LIVE</span>
                 ) : (
-                  <span className="flex items-center gap-1.5"><History className="h-3 w-3" /> {timelineData[timelineIndex].time}</span>
+                  <span className="flex items-center gap-1.5"><History className="h-3 w-3" /> {timelineData[timelineIndex]?.time}</span>
                 )}
               </Badge>
             </div>

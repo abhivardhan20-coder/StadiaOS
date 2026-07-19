@@ -112,7 +112,7 @@ export function FacilityAdmin() {
       status: 'active',
       capacity: '',
       aiHealth: 100,
-      lastMaintenance: new Date().toISOString().split('T')[0]
+      lastMaintenance: new Date().toISOString().split('T')[0] || ''
     });
     setIsNew(true);
   };

@@ -50,8 +50,9 @@ export function WayfinderAI() {
       setRoute(data);
       if (!silent) addToast('Route generated successfully', 'success');
       setIsLiveActive(true);
-    } catch (e) {
-      if (!silent) addToast(e.message || 'Failed to fetch route', 'error');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Failed to fetch route';
+      if (!silent) addToast(msg, 'error');
       setIsLiveActive(false);
     } finally {
       if (!silent) setIsLoading(false);

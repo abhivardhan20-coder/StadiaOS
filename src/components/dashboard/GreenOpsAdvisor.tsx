@@ -130,13 +130,15 @@ export function GreenOpsAdvisor() {
             <div className="absolute -right-4 -bottom-4 opacity-5">
               <DollarSign className="w-48 h-48" />
             </div>
-            <p className="text-xs uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-bold mb-2 flex items-center gap-1 relative z-10"><DollarSign className="h-4 w-4" /> Cost Savings (AI Optimized)</p>
-            <p className="text-sm text-emerald-600/80 dark:text-emerald-500/80 mb-4 relative z-10">Projected savings across energy, water, and waste management based on predictive adjustments.</p>
-            {isLoading && !data ? (
-              <div className="h-10 w-48 bg-emerald-200/50 dark:bg-emerald-900/50 animate-pulse rounded"></div>
-            ) : (
-              <div className="text-4xl @2xl:text-5xl font-bold font-mono text-emerald-900 dark:text-emerald-100 tracking-tight drop-shadow-sm relative z-10">{data?.savings || '--'}</div>
-            )}
+            <div aria-live="polite" aria-atomic="true">
+              <p className="text-xs uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-bold mb-2 flex items-center gap-1 relative z-10"><DollarSign className="h-4 w-4" /> Cost Savings (AI Optimized)</p>
+              <p className="text-sm text-emerald-600/80 dark:text-emerald-500/80 mb-4 relative z-10">Projected savings across energy, water, and waste management based on predictive adjustments.</p>
+              {isLoading && !data ? (
+                <div className="h-10 w-48 bg-emerald-200/50 dark:bg-emerald-900/50 animate-pulse rounded"></div>
+              ) : (
+                <div className="text-4xl @2xl:text-5xl font-bold font-mono text-emerald-900 dark:text-emerald-100 tracking-tight drop-shadow-sm relative z-10">{data?.savings || '--'}</div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

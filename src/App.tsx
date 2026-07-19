@@ -84,6 +84,9 @@ function DashboardContent() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-50 transition-colors duration-500 relative">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-indigo-600 focus:font-bold focus:rounded-md focus:shadow-md dark:focus:bg-slate-800 dark:focus:text-white">
+        Skip to main content
+      </a>
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[120px]" />

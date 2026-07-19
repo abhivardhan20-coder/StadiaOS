@@ -61,6 +61,22 @@ class EventBus {
       window.addEventListener('online', this.handleOnline);
       window.addEventListener('offline', this.handleOffline);
       
+      let debounceTimer: ReturnType<typeof setTimeout>;
+      window.addEventListener('visibilitychange', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (document.visibilityState === 'hidden') {
+            Object.keys(this.pollTimers).forEach(key => {
+              clearTimeout(this.pollTimers[key]);
+              delete this.pollTimers[key];
+            });
+          } else {
+            this.reconnectAll();
+            Object.keys(this.fetchers).forEach(key => this.scheduleNext(key));
+          }
+        }, 300);
+      });
+
       // Attempt WebSocket connection if URL is provided in env, else it stays WebSocket-ready
       // using fallback polling.
       let wsEndpoint = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_WS_ENDPOINT;
@@ -82,8 +98,9 @@ class EventBus {
       let changed = false;
       
       Object.keys(this.metadata).forEach(channel => {
-        if (this.metadata[channel].status === 'active' && now - this.metadata[channel].lastUpdated > this.staleThreshold) {
-          this.metadata[channel].status = 'stale';
+        const meta = this.metadata[channel];
+        if (meta && meta.status === 'active' && meta.lastUpdated && now - meta.lastUpdated > this.staleThreshold) {
+          meta.status = 'stale';
           changed = true;
         }
       });
@@ -168,7 +185,8 @@ class EventBus {
     this.isOnline = false;
     this.wsReady = false;
     Object.keys(this.metadata).forEach(key => {
-      this.metadata[key].status = 'offline';
+      const meta = this.metadata[key];
+      if (meta) meta.status = 'offline';
     });
     this.notify();
   };
@@ -335,8 +353,9 @@ class EventBus {
     
     this.fetchingLocks[key] = true;
     try {
-      if (this.metadata[key]?.status === 'error') {
-        this.metadata[key].status = 'loading';
+      const meta = this.metadata[key];
+      if (meta && meta.status === 'error') {
+        meta.status = 'loading';
         this.notify();
       }
       
@@ -354,7 +373,7 @@ class EventBus {
     } catch (_e) {
       console.error("Pipeline fetch error", _e);
       this.metadata[key] = {
-        ...this.metadata[key],
+        lastUpdated: this.metadata[key]?.lastUpdated || Date.now(),
         status: 'error',
         error: _e instanceof Error ? _e.message : String(_e)
       };
@@ -376,8 +395,8 @@ class EventBus {
     Object.keys(this.fetchers).forEach(key => this.fetchData(key));
   }
 
-  public optimisticUpdate(key: string, mutation: (prev: unknown) => unknown) {
-    const newVal = mutation(this.data[key]);
+  public optimisticUpdate<T>(key: string, mutation: (prev: T) => T) {
+    const newVal = mutation(this.data[key] as T);
     this.publish(key, newVal);
   }
 }
@@ -421,7 +440,7 @@ export function useLivePipeline<T>(key: string, fetcher: () => Promise<T>, pollI
     status: status || 'loading',
     lastUpdated: state.metadata[key]?.lastUpdated,
     error: state.metadata[key]?.error,
-    optimisticUpdate: (mutation: (prev: T) => T) => pipelineCore.optimisticUpdate(key, mutation)
+    optimisticUpdate: (mutation: (prev: T) => T) => pipelineCore.optimisticUpdate<T>(key, mutation)
   };
 }
 

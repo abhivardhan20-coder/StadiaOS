@@ -7,6 +7,21 @@ import { FALLBACK_MOCKS } from './mocks';
  * and calculating wayfinding routes, with built-in fallback to mock data.
  */
 export class ApiClient {
+  private static getCsrfToken(): string {
+    if (typeof document === 'undefined') return '';
+    const match = document.cookie.match(new RegExp('(^| )csrf_token=([^;]+)'));
+    return match ? (match[2] || '') : '';
+  }
+
+  private static getHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+    const headers: Record<string, string> = { ...extraHeaders };
+    const csrfToken = this.getCsrfToken();
+    if (csrfToken) {
+      headers['x-csrf-token'] = csrfToken;
+    }
+    return headers;
+  }
+
   private static async handleResponse(response: Response) {
     if (!response.ok) {
       let errorData;
@@ -30,8 +45,9 @@ export class ApiClient {
   static async translate(text: string, targetLanguage: string, history?: {role: string, content: string}[]): Promise<TranslationResult> {
     try {
     const res = await fetch('/api/polyglot', {
+      credentials: 'include',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ text, targetLanguage, history })
     });
     return await this.handleResponse(res);
@@ -47,7 +63,7 @@ export class ApiClient {
    */
   static async getGreenOpsData(): Promise<GreenOpsData> {
     try {
-    const res = await fetch('/api/green-ops');
+    const res = await fetch('/api/green-ops', { credentials: 'include' });
     return await this.handleResponse(res);
     } catch (e) {
       console.warn("Falling back to offline mock for greenOps", e);
@@ -64,7 +80,7 @@ export class ApiClient {
    */
   static async getStadiumLive(): Promise<unknown> {
     try {
-    const res = await fetch('/api/stadium-live');
+    const res = await fetch('/api/stadium-live', { credentials: 'include' });
     return await this.handleResponse(res);
     } catch (e) {
       console.warn("Falling back to offline mock for stadiumLive", e);
@@ -83,8 +99,9 @@ export class ApiClient {
   static async getWayfinderRoute(options: { destination: string, stepFreeOnly?: boolean, role?: string, avoid?: string[], evacuationMode?: boolean }): Promise<WayfinderRoute> {
     try {
     const res = await fetch('/api/wayfinder', {
+      credentials: 'include',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(options)
     });
     return await this.handleResponse(res);

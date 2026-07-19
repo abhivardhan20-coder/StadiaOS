@@ -273,8 +273,8 @@ export function NotificationHub() {
             </motion.div>
           ) : (
             filteredNotifs.map((notif, index) => {
-              const style = PRIORITY_STYLES[notif.priority] || PRIORITY_STYLES['Information'];
-              const Icon = style.icon;
+              const style = PRIORITY_STYLES[notif.priority] || PRIORITY_STYLES['Information'] as NonNullable<typeof PRIORITY_STYLES[string]>;
+              const Icon = style.icon || Info;
               const isSelected = selectedIds.has(notif.id);
 
               return (

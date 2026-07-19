@@ -144,8 +144,9 @@ export function PolyglotConcierge() {
         }
       }, 800); // Fake delay for language detection animation
       
-    } catch (e) {
-      addToast(e.message || 'Translation failed', 'error');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Translation failed';
+      addToast(msg, 'error');
       setIsDetecting(false);
     } finally {
       setTimeout(() => setIsLoading(false), 800);

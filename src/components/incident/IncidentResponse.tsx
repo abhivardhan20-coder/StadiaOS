@@ -93,7 +93,7 @@ const STATUS_STYLES: Record<string, { color: string; icon: React.ElementType }> 
 
 export function IncidentResponse() {
   const [activeTab, setActiveTab] = useState('active'); // active, resolved
-  const [selectedIncident, setSelectedIncident] = useState<typeof INCIDENTS[0] | null>(INCIDENTS[0]);
+  const [selectedIncident, setSelectedIncident] = useState<typeof INCIDENTS[number] | null>(INCIDENTS[0] || null);
   const [search, setSearch] = useState('');
 
   const filteredIncidents = INCIDENTS.filter(i => {
@@ -160,8 +160,8 @@ export function IncidentResponse() {
 
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
             {filteredIncidents.map(incident => {
-              const pStyle = PRIORITY_STYLES[incident.priority];
-              const sStyle = STATUS_STYLES[incident.status];
+              const pStyle = PRIORITY_STYLES[incident.priority] || PRIORITY_STYLES['Low']!;
+              const sStyle = STATUS_STYLES[incident.status] || STATUS_STYLES['Open']!;
               const StatusIcon = sStyle.icon;
               const isSelected = selectedIncident?.id === incident.id;
 
@@ -214,14 +214,17 @@ export function IncidentResponse() {
               {/* Detail Header */}
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
                 <div className="flex flex-wrap gap-2 items-center mb-3">
-                  <Badge variant="outline" className={`text-[10px] py-0 border-none ${PRIORITY_STYLES[selectedIncident.priority].bg} ${PRIORITY_STYLES[selectedIncident.priority].color}`}>
+                  <Badge variant="outline" className={`text-[10px] py-0 border-none ${(PRIORITY_STYLES[selectedIncident.priority] || PRIORITY_STYLES['Low']!).bg} ${(PRIORITY_STYLES[selectedIncident.priority] || PRIORITY_STYLES['Low']!).color}`}>
                     {selectedIncident.priority} Priority
                   </Badge>
                   <Badge variant="outline" className="text-[10px] py-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                     Sev: {selectedIncident.severity}
                   </Badge>
                   <Badge variant="outline" className="text-[10px] py-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center gap-1">
-                    <StatusIcon status={selectedIncident.status} /> {selectedIncident.status}
+                    {(() => {
+                      const Icon = (STATUS_STYLES[selectedIncident.status] || STATUS_STYLES['Open']!).icon;
+                      return <Icon className="h-3 w-3" />;
+                    })()} {selectedIncident.status}
                   </Badge>
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{selectedIncident.title}</h2>

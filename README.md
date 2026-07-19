@@ -14,6 +14,27 @@ We use the Gemini API to power two primary AI capabilities with specific decisio
 1. **OpsCopilot**: A context-aware chat interface for stadium operators, capable of analyzing real-time crowd and infrastructure data. OpsCopilot's logic engine evaluates incoming live telemetry against predetermined thresholds. When conditions are normal or mildly elevated, OpsCopilot **suggests** preventative measures (e.g., recommending opening an overflow gate). However, if critical thresholds are breached (e.g., crowd density > 85%, or a severe incident is detected), the logic automatically **escalates** the situation by generating high-priority alerts and proposing immediate dispatch actions to security or medical teams.
 2. **Wayfinder**: A smart routing engine that generates natural language directions while dynamically avoiding crowded areas or hazards based on live stadium telemetry. Rather than simply using shortest-path routing, Wayfinder scores route alternatives dynamically. Routes are penalized based on live congestion metrics from the `stadiumLive` pipeline and known temporary hazard zones. If a user specifies accessibility requirements (e.g., step-free access for wheelchairs), the logic strictly enforces step-free constraints, entirely ruling out routes with stairs in favor of elevators and ramps.
 
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `PORT` | The port the server runs on (default 3000) | No |
+| `NODE_ENV` | Environment (development or production) | No |
+| `GEMINI_API_KEY` | Google Gemini API key for AI features | Yes |
+| `JWT_SECRET` | Secret used to sign JSON Web Tokens | Yes |
+| `SESSION_SECRET` | Secret used for Express session | Yes |
+| `VITE_GOOGLE_CLIENT_ID` | Client ID for Google OAuth login | Yes |
+
+## Architecture
+
+```mermaid
+graph TD
+    Client[React SPA] -->|WebSocket/Polling| Pipeline[PipelineCore]
+    Client -->|REST/JSON| API[Express API Server]
+    API -->|Prompt + Context| Gemini[Gemini API]
+    Pipeline -->|Real-time Data| UI[Dashboard Components]
+```
+
 ## How the Solution Works
 
 - **Live Event Pipeline**: A robust client-side `PipelineCore` manages data streams. It uses WebSockets where available, falling back to intelligent polling if necessary. It supports optimistic updates and caching.

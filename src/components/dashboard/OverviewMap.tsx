@@ -93,7 +93,7 @@ export function OverviewMap() {
   const { data } = useLivePipeline('stadiumLive', () => ApiClient.getStadiumLive(), 4000);
   const liveContext: LiveContext | undefined = (data as unknown as { liveContext?: LiveContext })?.liveContext;
   
-  const [activeLayer, setActiveLayer] = useState(LAYERS[0].id);
+  const [activeLayer, setActiveLayer] = useState(LAYERS[0]?.id || 'density');
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [layerData, setLayerData] = useState<Record<string, any>>({}) 
   
@@ -168,7 +168,7 @@ export function OverviewMap() {
                 <MapIcon className="h-5 w-5 text-indigo-500" />
                 Live Digital Twin
               </CardTitle>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3" aria-live="polite" aria-atomic="true">
                 <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 backdrop-blur-md shadow-sm">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
                   SYNC: {LAYERS.find(l => l.id === activeLayer)?.label.toUpperCase()}
@@ -255,8 +255,8 @@ export function OverviewMap() {
                       )}
                       
                       {/* Metric Indicator if selected or critical */}
-                      {(isSelected || data?.status === 'critical') && value > 0 && (
-                        <g transform={`translate(${zone.center[0]}, ${zone.center[1] + 15})`}>
+                      {(isSelected || data?.status === 'critical') && value > 0 && zone.center && (
+                        <g transform={`translate(${zone.center[0]}, ${(zone.center[1] ?? 0) + 15})`}>
                           <rect x="-15" y="-8" width="30" height="16" rx="8" fill="rgba(0,0,0,0.7)" />
                           <text x="0" y="1" textAnchor="middle" dominantBaseline="middle" className="text-[9px] font-mono font-bold fill-white">
                             {value.toFixed(0)}

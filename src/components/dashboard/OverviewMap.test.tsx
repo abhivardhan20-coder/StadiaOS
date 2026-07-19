@@ -26,7 +26,7 @@ describe('OverviewMap', () => {
       } as any,
       status: 'active',
       lastUpdated: Date.now(),
-      error: null,
+      error: undefined,
       optimisticUpdate: vi.fn()
     });
   });

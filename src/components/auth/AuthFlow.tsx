@@ -55,7 +55,7 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
     <div className="relative min-h-screen w-full flex items-center justify-center bg-slate-950 overflow-hidden font-sans text-slate-50">
       {/* Animated Stadium Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1577223625816-7546f13df25d?q=80&w=2936&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-luminosity"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-slate-900 to-indigo-900 opacity-20"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent"></div>
         <div className="absolute top-[20%] -left-[10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
         <div className="absolute top-[40%] -right-[10%] w-[30%] h-[40%] rounded-full bg-emerald-600/20 blur-[100px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
@@ -165,97 +165,17 @@ function LoginForm({ onNext, onForgot, onOAuthSuccess }: { onNext: () => void, o
           </div>
         )}
         
-
-        <div className="pt-2">
-          <button 
-            type="button" 
-            onClick={() => { setEmail('admin@stadiaos.com'); setPassword('Admin123!_Secure'); }}
-            className="w-full text-xs text-indigo-400 hover:text-indigo-300 font-medium py-2 rounded border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 transition-colors"
-          >
-            Use Demo Admin Credentials
-          </button>
+        <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 text-center">
+           <p className="text-sm text-slate-300 font-medium mb-1">Demo Mode</p>
+           <p className="text-xs text-slate-400 mb-3">Local only, no server validation</p>
+           <button 
+             type="button" 
+             onClick={() => onNext()}
+             className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium text-sm rounded-lg py-2 px-4 transition-colors"
+           >
+             Enter Demo Workspace
+           </button>
         </div>
-
-        <div className="space-y-1">
-          <label htmlFor="login-email" className="text-xs font-medium text-slate-300 ml-1">Enterprise Email</label>
-          <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <input id="login-email" 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-950/50 border border-slate-700/50 text-white text-sm rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all placeholder:text-slate-600"
-              placeholder="user@organization.com"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <div className="flex items-center justify-between ml-1">
-            <label htmlFor="login-password" className="text-xs font-medium text-slate-300">Password</label>
-            <button type="button" onClick={onForgot} className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-              Forgot password?
-            </button>
-          </div>
-          <div className="relative">
-            <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <input 
-              id="login-password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-950/50 border border-slate-700/50 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all placeholder:text-slate-600"
-              placeholder="••••••••"
-            />
-            <button 
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-              aria-label="Toggle password visibility"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <AnimatePresence>
-            {capsLockActive && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="text-amber-400 text-xs flex items-center gap-1.5 mt-2 ml-1"
-              >
-                <Keyboard className="h-3 w-3" /> Caps Lock is on
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="flex items-center ml-1 pb-2">
-          <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer group">
-            <div className="relative flex items-center justify-center">
-              <input id="remember-me" type="checkbox" className="sr-only peer" />
-              <div className="h-4 w-4 border border-slate-600 rounded bg-slate-950/50 peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-colors"></div>
-              <ShieldCheck className="absolute h-3 w-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
-            </div>
-            <span className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">Remember this device for 30 days</span>
-          </label>
-        </div>
-
-        <button 
-          type="submit" 
-          disabled={isLoading || !email || !password}
-          className="w-full bg-white text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-white font-medium text-sm rounded-xl py-3 px-4 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              Sign In <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </>
-          )}
-        </button>
       </form>
 
       <div className="mt-6">

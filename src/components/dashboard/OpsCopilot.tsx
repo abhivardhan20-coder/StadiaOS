@@ -104,7 +104,7 @@ export function OpsCopilot() {
     setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
 
     try {
-      const response = await fetch('/api/ops-copilot', {
+      const response = await fetch('/api/ops-copilot', { credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -145,8 +145,9 @@ export function OpsCopilot() {
           }
         }
       }
-    } catch (error) {
-      addToast(error.message || 'Error communicating with AI services.', 'error');
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Error communicating with AI services.';
+      addToast(msg, 'error');
       setMessages(prev => prev.map(msg => 
         msg.id === assistantMsgId 
           ? { ...msg, content: 'Error communicating with AI services. Please try again.' } 
