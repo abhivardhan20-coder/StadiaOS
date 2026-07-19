@@ -25,7 +25,7 @@ describe('PolyglotConcierge', () => {
       translatedText: 'Hola',
       language: 'es',
       intent: 'greeting',
-    } as any);
+    } as unknown);
 
     renderComponent();
     const input = screen.getByPlaceholderText(/type or speak in any language/i);
@@ -59,7 +59,7 @@ describe('PolyglotConcierge', () => {
       translatedText: 'Hola',
       language: 'es',
       intent: 'greeting',
-    } as any);
+    } as unknown);
 
     const { unmount } = renderComponent();
     const input = screen.getByPlaceholderText(/type or speak in any language/i);

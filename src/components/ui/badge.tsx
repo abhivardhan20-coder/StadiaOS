@@ -11,7 +11,7 @@ function Badge({ className, variant = "default", ...props }: BadgeProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (isInteractive && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
-      props.onClick?.(e as any);
+      props.onClick?.(e as unknown);
     }
     props.onKeyDown?.(e);
   };

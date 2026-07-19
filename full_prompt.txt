@@ -1,0 +1,354 @@
+﻿<USER_REQUEST>
+/goal # StadiaOS â€” Path to 100/100
+
+I went through the whole repo (`server.ts`, all `src/components/**`, config, CI, tests). It's already a strong entry â€” real WebSocket pipeline, Zod validation, helmet/CORS/rate-limiting, an a11y ESLint plugin installed, a Gemini fallback path, and a clear chosen vertical. The gaps that are actually costing points are specific and fixable in a few focused passes. Below, each item has:
+
+- **Why it costs points** (mapped to the rubric: Code Quality / Security / Efficiency / Testing / Accessibility, and the "smart, dynamic assistant / logical decision-making" challenge expectation)
+- **A ready-to-paste prompt** for your AI coding tool
+- **A concrete code snippet** so you can verify what "done" looks like
+
+Ordered by impact tier, since that's how it'll be scored.
+
+---
+
+## HIGH IMPACT
+
+### H1. "Logical decision-making" currently lives entirely inside an LLM prompt â€” make it deterministic
+
+**Why it matters:** The README claims OpsCopilot "evaluates incoming live telemetry against predetermined thresholds" and escalates vs. suggests. Looking at `server.ts`, that logic doesn't exist in code â€” it's a sentence inside the Gemini `systemInstruction`. That means the "logical decision making based on user context" requirement (a named Challenge Expectation, not just a nice-to-have) is entirely dependent on the model's mood, isn't testable, and isn't auditable. This is the single highest-leverage fix for the "smart, dynamic assistant" criterion.
+
+**Prompt to use:**
+> "In `server.ts`, extract a pure, synchronous function `evaluateOpsPolicy(liveContext: LiveContext): { level: 'normal' | 'suggest' | 'escalate'; reasons: string[]; suggestedActions: string[] }` that applies explicit thresholds (e.g. any zone density â‰¥ 85 â†’ escalate, â‰¥ 75 â†’ suggest, any `securityIncidents` entry â†’ escalate). Call it inside the `/api/ops-copilot` handler before hitting Gemini, inject the resulting `level`/`reasons` into the systemInstruction so the model's language matches the deterministic decision instead of inventing it, and return `policy` alongside the streamed text so the frontend can render an 'ESCALATED'/'SUGGESTED' badge without parsing markdown. Add unit tests in `server.test.ts` covering normal/suggest/escalate/multiple-breach cases."
+
+**Snippet (drop into `server.ts` above the `/api/ops-copilot` route):**
+```ts
+export interface OpsPolicyResult {
+  level: "normal" | "suggest" | "escalate";
+  reasons: string[];
+  suggestedActions: string[];
+}
+
+const DENSITY_ESCALATE = 85;
+const DENSITY_SUGGEST = 75;
+
+/**
+ * Deterministic escalation policy. Kept separate from the LLM call so the
+ * decision is testable, auditable, and never depends on model output.
+ */
+export function evaluateOpsPolicy(liveContext?: { zones?: { name: string; density: number }[]; alerts?: string[] }): OpsPolicyResult {
+  const reasons: string[] = [];
+  const suggestedActions: string[] = [];
+  let level: OpsPolicyResult["level"] = "normal";
+
+  for (const zone of liveContext?.zones ?? []) {
+    if (zone.density >= DENSITY_ESCALATE) {
+      level = "escalate";
+      reasons.push(`${zone.name} density at ${zone.density}% (>= ${DENSITY_ESCALATE}%)`);
+      suggestedActions.push(`Dispatch security/medical to ${zone.name}`);
+    } else if (zone.density >= DENSITY_SUGGEST && level !== "escalate") {
+      level = "suggest";
+      reasons.push(`${zone.name} density at ${zone.density}% (>= ${DENSITY_SUGGEST}%)`);
+      suggestedActions.push(`Consider opening overflow route near ${zone.name}`);
+    }
+  }
+
+  if ((liveContext?.alerts ?? []).length > 0) {
+    level = "escalate";
+    reasons.push(...(liveContext?.alerts ?? []));
+  }
+
+  return { level, reasons, suggestedActions };
+}
+```
+```ts
+// inside app.post("/api/ops-copilot", ...)
+const policy = evaluateOpsPolicy(context as any);
+const systemInstruction = `...
+Deterministic policy engine has already evaluated this context: level="${policy.level}", reasons=${JSON.stringify(policy.reasons)}.
+Your recommendation MUST be consistent with this level â€” do not upgrade or downgrade it.
+...`;
+// send policy down the wire before/with the stream so the UI can badge it
+res.write(`data: ${JSON.stringify({ policy })}\n\n`);
+```
+
+---
+
+### H2. `npm run lint` never actually runs ESLint â€” your a11y rules are configured but unenforced
+
+**Why it matters:** `package.json` has `"lint": "tsc --noEmit"`. `eslint.config.js` wires up `eslint-plugin-jsx-a11y` and `react-hooks` correctly â€” but nothing ever invokes `eslint`, including CI (`.github/workflows/ci.yml` just runs `npm run lint`). This is graded on both **Code Quality** and **Accessibility**, and right now you get credit for neither because the checks silently never run.
+
+**Prompt to use:**
+> "Rename the current `tsc --noEmit` script to `typecheck`, add a real `lint` script that runs `eslint .`, add a `lint:fix`, and make `npm run lint` also run `typecheck` via `npm-run-all` (or a shell `&&`). Update `.github/workflows/ci.yml` to run `npm run typecheck` and `npm run lint` as separate steps so failures are attributable. Fix whatever ESLint/jsx-a11y violations surface."
+
+**Snippet (`package.json`):**
+```json
+"scripts": {
+  "dev": "tsx server.ts",
+  "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+  "start": "node dist/server.cjs",
+  "clean": "rm -rf dist server.js",
+  "typecheck": "tsc --noEmit",
+  "lint": "eslint .",
+  "lint:fix": "eslint . --fix",
+  "test": "vitest run --coverage"
+}
+```
+**Snippet (`.github/workflows/ci.yml`, replace the two run steps):**
+```yaml
+    - run: npm ci
+    - run: npm run typecheck
+    - run: npm run lint
+    - run: npm test
+```
+
+---
+
+### H3. Google OAuth flow has no `state` parameter â€” CSRF gap on login
+
+**Why it matters:** In `server.ts`, `/api/auth/google` builds the authorize URL without a `state` param, and `/api/auth/google/callback` never checks one. This is a textbook OAuth CSRF vector (an attacker can trick a victim's browser into completing an attacker-initiated auth flow) and it's exactly the kind of thing a security-focused review will flag on a submission that otherwise has helmet/CORS/rate-limiting in place.
+
+**Prompt to use:**
+> "In `server.ts`, generate a cryptographically random `state` value in `/api/auth/google`, store it in an httpOnly cookie (`oauth_state`, short-lived, `secure`, `sameSite: 'lax'`), and include it as the `state` query param sent to Google. In `/api/auth/google/callback`, compare the returned `state` query param against the cookie value and reject the request (clear message, no token issuance) if they don't match or either is missing. Clear the `oauth_state` cookie after a successful or failed callback."
+
+**Snippet:**
+```ts
+import crypto from "crypto";
+
+app.get('/api/auth/google', (req, res) => {
+  const state = crypto.randomBytes(16).toString('hex');
+  res.cookie('oauth_state', state, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 5 * 60 * 1000 });
+
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.get('host');
+  const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=email%20profile&access_type=offline&state=${state}`;
+  res.redirect(url);
+});
+
+app.get('/api/auth/google/callback', async (req, res) => {
+  const { code, state } = req.query;
+  const expectedState = req.cookies?.oauth_state;
+  res.clearCookie('oauth_state');
+
+  if (!expectedState || state !== expectedState) {
+    console.warn('OAuth state mismatch â€” possible CSRF attempt.');
+    return res.send(`<html><body><script>
+      window.opener.postMessage({ type: 'OAUTH_ERROR', reason: 'state_mismatch' }, window.location.origin);
+      window.close();
+    </script></body></html>`);
+  }
+  // ...existing token exchange using `code`
+});
+```
+
+---
+
+### H4. Zero test coverage on components â€” coverage config explicitly excludes them
+
+**Why it matters:** `vitest.config.ts` sets `coverage.include: ['src/hooks/**', 'src/lib/**', 'server.ts']` â€” i.e. **all 20+ React components are excluded from coverage by design**, and only 5 test files exist total (316 lines). "Testing â€“ validation of functionality" is a named evaluation category; right now the AI-decision surfaces (`OpsCopilot`, `CrowdPulse`, `GreenOpsAdvisor`, `WayfinderAI`) â€” the actual heart of the "smart assistant" â€” have no tests at all.
+
+**Prompt to use:**
+> "Remove the coverage `include` restriction in `vitest.config.ts` so it covers all of `src/**` (keep excluding `src/components/ui/**` and `*.test.*`). Add a `coverage.thresholds` block (lines/statements/functions â‰¥ 70%, branches â‰¥ 60%). Then write component tests for `OpsCopilot`, `CrowdPulse`, `GreenOpsAdvisor`, and `WayfinderAI` using React Testing Library: mock `ApiClient`/`useLivePipeline`, assert that high-density telemetry renders an escalation/critical state, that step-free routing filters out `stairs` route steps, and that API failures fall back to the documented mock data instead of crashing. Wire `npm test` to fail CI if thresholds aren't met."
+
+**Snippet (`vitest.config.ts`):**
+```ts
+coverage: {
+  provider: 'v8',
+  reporter: ['text', 'json', 'html'],
+  include: ['src/**', 'server.ts'],
+  exclude: ['src/components/ui/**', 'src/**/*.test.*', 'src/test/**'],
+  thresholds: { lines: 70, statements: 70, functions: 70, branches: 60 },
+},
+```
+**Snippet (example: `src/components/dashboard/WayfinderAI.test.tsx`):**
+```tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { WayfinderAI } from './WayfinderAI';
+import { ApiClient } from '@/src/lib/api';
+
+vi.mock('@/src/lib/api');
+
+describe('WayfinderAI', () => {
+  it('excludes stairs when step-free is required', async () => {
+    (ApiClient.getWayfinderRoute as any).mockResolvedValue({
+      destination: 'Gate C',
+      step_free: true,
+      route_steps: [
+        { instruction: 'Take elevator', type: 'elevator', congestion: 'low', distance: 0, duration: 1 },
+      ],
+      estimated_walk_time_min: 5,
+      rationale: 'Step-free path selected.',
+      predicted_congestion: 'low',
+      alternative_routes: [],
+    });
+
+    render(<WayfinderAI />);
+    fireEvent.click(screen.getByLabelText(/step-free/i));
+    fireEvent.change(screen.getByRole('textbox', { name: /destination/i }), { target: { value: 'Gate C' } });
+    fireEvent.click(screen.getByRole('button', { name: /find route/i }));
+
+    expect(await screen.findByText(/elevator/i)).toBeInTheDocument();
+    expect(screen.queryByText(/stairs/i)).not.toBeInTheDocument();
+  });
+});
+```
+
+---
+
+## MEDIUM IMPACT
+
+### M1. TypeScript isn't in strict mode
+
+**Why it matters:** `tsconfig.json` has no `"strict": true`. On a codebase this size, that's silently disabling `strictNullChecks`, `noImplicitAny`, etc., which is exactly what "Code Quality â€” maintainability" penalizes. Several `any` casts already exist in `server.ts` (`error: any`, `context: any`) that strict mode + explicit typing would catch.
+
+**Prompt to use:**
+> "Enable `\"strict\": true` in `tsconfig.json`. Run `npm run typecheck` and fix the resulting errors by replacing `any` with proper types (e.g. type the Zod-inferred payloads with `z.infer<typeof opsCopilotSchema>` instead of destructuring loosely, and type Express error handlers as `unknown` narrowed via `instanceof`)."
+
+**Snippet:**
+```json
+"compilerOptions": {
+  "strict": true,
+  "noUncheckedIndexedAccess": true,
+  ...
+}
+```
+```ts
+// server.ts â€” replace `catch (error: any)` patterns with:
+} catch (error: unknown) {
+  if (error instanceof z.ZodError) return next(error);
+  const message = error instanceof Error ? error.message : "unknown_error";
+  console.error("Ops Copilot error:", message);
+  ...
+}
+```
+
+---
+
+### M2. Rate-limit / trust-proxy mismatch
+
+**Why it matters:** `app.set("trust proxy", 1)` tells Express to trust `X-Forwarded-For`, but `apiLimiter` is configured with `validate: { trustProxy: false, xForwardedForHeader: false }`. Behind Cloud Run (which the README says this targets), every request arrives through a proxy â€” with this combination the rate limiter can end up keying on the wrong IP (or throwing/ignoring proxy headers), meaning your 30 req/min limit may not actually apply per-client in production. That's a real gap for both **Security** and **Efficiency** (resource protection).
+
+**Prompt to use:**
+> "Align the rate limiter's trust-proxy validation with the Express `trust proxy` setting so IP-based limiting is accurate behind Cloud Run's single reverse proxy hop. Add a test that sends requests with a spoofed `X-Forwarded-For` and confirms the limiter isn't bypassed."
+
+**Snippet:**
+```ts
+const apiLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." },
+  validate: { trustProxy: true }, // matches app.set('trust proxy', 1)
+});
+```
+
+---
+
+### M3. Duplicated mock data & duplicated prompt text (DRY / token efficiency)
+
+**Why it matters:** The `lastGreenOps` fallback object is defined twice, near-identically, in `/api/green-ops`'s catch block and again inside `createApp()` for the WS broadcast loop. The Wayfinder prompt string literally repeats the destination/preferences/venue-context block twice in a row (copy-paste artifact), which doubles token cost on every request for no benefit. Both are cheap fixes that materially help "Efficiency â€” optimal use of resources" and "Code Quality."
+
+**Prompt to use:**
+> "Extract the duplicated `greenOps` mock/fallback object into a single `DEFAULT_GREEN_OPS` constant in `server.ts` (or a new `src/lib/fallbacks.ts`) and reference it from both the `/api/green-ops` catch block and the WS broadcast seed state. Remove the duplicated destination/preferences/venue-context paragraph in the `/api/wayfinder` prompt string â€” it appears twice back-to-back."
+
+**Snippet:**
+```ts
+const DEFAULT_GREEN_OPS = {
+  score: 88, electricity: "1.2MW", solar: "350kW", water: "4.2kL/h",
+  hvac: "Optimal (22C)", carbon: "2.1t/h", waste: "1.2t", recycling: "0.8t",
+  foodWaste: "150kg", battery: "92%", airQuality: "Good (42 AQI)",
+  temperature: "22Â°C", humidity: "45%", savings: "$1,250",
+  forecasts: ["Peak energy demand expected at 18:00", "Solar generation dropping in 2 hours", "HVAC efficiency at 95%"],
+  recommendations: ["Pre-cool sector 4", "Switch to battery power for peak", "Reduce lighting in empty zones"],
+};
+// use `{ ...DEFAULT_GREEN_OPS }` in both places instead of two literals
+```
+*(Note: also fixes a real bug â€” the current fallback has `savings: ",250"` with a missing `$1` prefix.)*
+
+---
+
+### M4. `GEMINI_API_KEY` isn't validated at startup
+
+**Why it matters:** `JWT_SECRET` has a fail-fast check (`process.exit(1)` if missing) but `GEMINI_API_KEY` doesn't â€” the app boots fine, then every AI route silently falls into the "quota exceeded" mock path forever, which is confusing to debug and inconsistent with the rest of the file's defensive style.
+
+**Prompt to use:**
+> "Add the same fail-fast/warn pattern used for `JWT_SECRET` to `GEMINI_API_KEY`: warn loudly on boot if it's missing so it's obvious the app will be running in fallback-mock mode, instead of discovering it only when a request fails."
+
+**Snippet:**
+```ts
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('WARNING: GEMINI_API_KEY is not set. All AI endpoints will serve offline mock data.');
+}
+```
+
+---
+
+## LOW IMPACT (polish)
+
+### L1. Accessibility polish beyond the ESLint baseline
+Once H2 makes `jsx-a11y` actually run, add:
+- A visible "Skip to main content" link in `App.tsx` before the sidebar.
+- Text labels alongside color-coded density/status badges (`CrowdPulse`, `OverviewMap`) so status isn't conveyed by color alone.
+- `aria-live="polite"` on the OpsCopilot streaming response container so screen readers announce new AI output.
+
+```tsx
+<a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 ...">
+  Skip to main content
+</a>
+```
+```tsx
+<div aria-live="polite" aria-atomic="false">
+  {messages.map(m => <MessageBubble key={m.id} message={m} />)}
+</div>
+```
+
+### L2. README additions
+Add an environment variable table and a short architecture diagram (even ASCII) â€” evaluators shouldn't have to read `server.ts` to know what `.env` keys are required and how the WS/REST split works.
+
+### L3. `npm audit` pass
+Run `npm audit --production` and note/patch any high-severity advisories before submitting â€” quick and it's a common quiet deduction.
+
+---
+
+## Repo-Hygiene Checklist (the "hard rules," not code)
+
+These aren't fixed with prompts â€” do them directly in GitHub/git:
+
+1. **Public + single branch:**
+   ```bash
+   git init
+   git checkout -b main
+   git add .
+   git commit -m "Initial commit: StadiaOS"
+   git remote add origin https://github.com/<you>/<repo>.git
+   git push -u origin main
+   ```
+   Then in GitHub repo Settings â†’ confirm visibility is **Public**, and don't create any other branches (delete `gh-pages`/`develop` if CI or a template created one).
+2. **Size < 10 MB:** current source is ~1.1 MB uncompressed. Just make sure `node_modules/`, `dist/`, and `coverage/` (already in `.gitignore`) never get committed â€” double check with:
+   ```bash
+   git count-objects -vH
+   du -sh .git
+   ```
+3. **No secrets committed:** `.env` is gitignored and `.env.example` only has placeholders â€” good, keep it that way after the above changes.
+
+---
+
+## Suggested order of operations (fits a 3-attempt budget)
+
+1. **Pass 1:** H1â€“H4 (decision engine, real lint in CI, OAuth CSRF fix, coverage unlock + AI-surface tests). Commit, push, let CI go green.
+2. **Pass 2:** M1â€“M4 (strict TS, trust-proxy fix, dedupe, env validation). Re-run `npm test`/`npm run lint` locally before pushing.
+3. **Pass 3:** L1â€“L3 polish + final README pass + `npm audit` + repo hygiene checklist, then push once more and stop touching it.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-19T16:29:51+05:30.
+
+The user has mentioned some items in the form @[ITEM]. Here is extra information about the items that were mentioned by the user, in the order that they appear:
+
+/goal is a [Slash Command]:
+The user has marked this task with /goal, indicating that this task is intended to run for a long time without user input, e.g. overnight. You should be extra thorough and only stop when you are confident the goal has been completely fulfilled. The system will force you to continue execution, prompting you to audit your work until completion.
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from None to Claude Opus 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

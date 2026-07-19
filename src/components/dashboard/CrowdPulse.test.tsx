@@ -7,7 +7,7 @@ import * as LiveEventPipeline from '@/src/lib/LiveEventPipeline';
 vi.mock('@/src/lib/LiveEventPipeline', async (importOriginal) => {
   const actual = await importOriginal();
   return {
-    ...(actual as any),
+    ...(actual as unknown),
     useLivePipeline: vi.fn(),
   };
 });
@@ -17,7 +17,7 @@ vi.mock('recharts', async () => {
   const OriginalRechartsModule = await vi.importActual('recharts');
   return {
     ...OriginalRechartsModule,
-    ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: unknown) => <div>{children}</div>,
   };
 });
 
@@ -33,7 +33,7 @@ describe('CrowdPulse', () => {
             { zone: 'Gate A', density: 92, trend: 'up' },
           ]
         },
-      } as any,
+      } as unknown,
       status: 'active',
       lastUpdated: Date.now(),
       error: undefined,

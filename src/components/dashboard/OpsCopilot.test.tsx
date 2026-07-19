@@ -8,7 +8,7 @@ import * as LiveEventPipeline from '@/src/lib/LiveEventPipeline';
 vi.mock('@/src/lib/LiveEventPipeline', async (importOriginal) => {
   const actual = await importOriginal();
   return {
-    ...(actual as any),
+    ...(actual as unknown),
     useLivePipeline: vi.fn(),
   };
 });
@@ -22,7 +22,7 @@ describe('OpsCopilot', () => {
     vi.spyOn(LiveEventPipeline, 'useLivePipeline').mockReturnValue({
       data: {
         liveContext: { zones: [] },
-      } as any,
+      } as unknown,
       status: 'active',
       lastUpdated: Date.now(),
       error: undefined,

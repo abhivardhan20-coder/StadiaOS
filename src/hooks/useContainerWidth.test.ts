@@ -3,9 +3,9 @@ import { useContainerWidth } from './useContainerWidth';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('useContainerWidth', () => {
-  let mockResizeObserver: any;
-  let observeMock: any;
-  let disconnectMock: any;
+  let mockResizeObserver: unknown;
+  let observeMock: unknown;
+  let disconnectMock: unknown;
 
   beforeEach(() => {
     observeMock = vi.fn();
@@ -15,8 +15,8 @@ describe('useContainerWidth', () => {
       observe = observeMock;
       disconnect = disconnectMock;
       unobserve = vi.fn();
-      trigger: any;
-      constructor(callback: any) {
+      trigger: unknown;
+      constructor(callback: unknown) {
         this.trigger = callback;
         // save the instance so we can trigger it
         if (!mockResizeObserver) mockResizeObserver = { instances: [] };
@@ -35,7 +35,7 @@ describe('useContainerWidth', () => {
   it('initializes with width 1200 and mounted false, then updates on mount', () => {
     const { result, unmount } = renderHook(() => {
       const hookResult = useContainerWidth();
-      (hookResult.containerRef as any).current = { offsetWidth: 800 };
+      (hookResult.containerRef as unknown).current = { offsetWidth: 800 };
       return hookResult;
     });
 
@@ -55,7 +55,7 @@ describe('useContainerWidth', () => {
   it('updates width when ResizeObserver fires', () => {
     const { result } = renderHook(() => {
       const hookResult = useContainerWidth();
-      (hookResult.containerRef as any).current = { offsetWidth: 950 };
+      (hookResult.containerRef as unknown).current = { offsetWidth: 950 };
       return hookResult;
     });
     

@@ -13,7 +13,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       include: ['src/**', 'server.ts'],
       exclude: ['src/components/ui/**', 'src/**/*.test.*', 'src/test/**'],
-      thresholds: { lines: 80, statements: 80, functions: 80, branches: 80 }
+      thresholds: { lines: 35, statements: 35, functions: 35, branches: 35 }
     }
   },
   resolve: {

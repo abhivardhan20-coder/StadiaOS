@@ -11,7 +11,7 @@ const mockResizeObserver = vi.fn(() => ({
 }));
 
 vi.mock('./components/auth/AuthFlow', () => ({
-  AuthFlow: ({ onAuthenticated }: any) => {
+  AuthFlow: ({ onAuthenticated }: unknown) => {
     React.useEffect(() => {
       onAuthenticated();
     }, [onAuthenticated]);

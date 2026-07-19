@@ -52,13 +52,13 @@ export function PolyglotConcierge() {
   useEffect(() => {
     if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
       
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = (window as unknown).SpeechRecognition || (window as unknown).webkitSpeechRecognition;
       
-      recognitionRef.current = new (SpeechRecognition as any)();
+      recognitionRef.current = new (SpeechRecognition as unknown)();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = true;
       
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = (event: unknown) => {
         let finalTranscript = '';
         
         for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -73,7 +73,7 @@ export function PolyglotConcierge() {
       };
 
       
-      recognitionRef.current.onerror = (event: any) => {
+      recognitionRef.current.onerror = (event: unknown) => {
         console.error("Speech recognition error", event.error);
         setIsListening(false);
       };

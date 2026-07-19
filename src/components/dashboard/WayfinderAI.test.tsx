@@ -10,7 +10,7 @@ vi.mock('@/src/lib/api');
 
 describe('WayfinderAI', () => {
   it('excludes stairs when step-free is required', async () => {
-    (ApiClient.getWayfinderRoute as any).mockResolvedValue({
+    (ApiClient.getWayfinderRoute as unknown).mockResolvedValue({
       destination: 'Gate C',
       step_free: true,
       route_steps: [

@@ -8,7 +8,7 @@ import * as LiveEventPipeline from '@/src/lib/LiveEventPipeline';
 vi.mock('@/src/lib/LiveEventPipeline', async (importOriginal) => {
   const actual = await importOriginal();
   return {
-    ...(actual as any),
+    ...(actual as unknown),
     useLivePipeline: vi.fn(),
   };
 });
@@ -33,7 +33,7 @@ describe('GreenOpsAdvisor', () => {
         savings: '$4,250',
         forecasts: ['Peak energy demand expected at 18:00'],
         recommendations: ['Pre-cool sector 4']
-      } as any,
+      } as unknown,
       status: 'active',
       lastUpdated: Date.now(),
       error: undefined,

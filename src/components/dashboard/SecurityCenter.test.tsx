@@ -22,7 +22,7 @@ describe('SecurityCenter', () => {
         ]
       },
       status: 'active',
-    } as any);
+    } as unknown);
 
     render(<SecurityCenter />);
 

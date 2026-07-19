@@ -6,10 +6,10 @@ import * as LiveEventPipeline from '@/src/lib/LiveEventPipeline';
 
 // Mock the Recharts ResponsiveContainer to just render its children
 vi.mock('recharts', async (importOriginal) => {
-  const actual: any = await importOriginal();
+  const actual: unknown = await importOriginal();
   return {
     ...actual,
-    ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: unknown) => <div>{children}</div>,
   };
 });
 
@@ -23,7 +23,7 @@ describe('OverviewMap', () => {
             { id: 'south_stand', name: 'South Stand', density: 40, status: 'normal' },
           ]
         }
-      } as any,
+      } as unknown,
       status: 'active',
       lastUpdated: Date.now(),
       error: undefined,

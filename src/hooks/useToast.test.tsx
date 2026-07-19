@@ -4,8 +4,8 @@ import { useToast, ToastProvider } from './useToast';
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('motion/react', () => ({
-  motion: { div: ({ children, ...props }: any) => <div {...props}>{children}</div> },
-  AnimatePresence: ({ children }: any) => <>{children}</>
+  motion: { div: ({ children, ...props }: unknown) => <div {...props}>{children}</div> },
+  AnimatePresence: ({ children }: unknown) => <>{children}</>
 }));
 
 const TestComponent = () => {

@@ -20,7 +20,7 @@ const MemoWayfinderAI = memo(WayfinderAI);
 const MemoGreenOpsAdvisor = memo(GreenOpsAdvisor);
 
 
-type ResponsiveLayouts = any;
+type ResponsiveLayouts = unknown;
 
 export function CommandCenter() {
   const { status, lastUpdated, error } = useLivePipeline('stadiumLive', () => ApiClient.getStadiumLive(), 4000);
@@ -66,7 +66,7 @@ export function CommandCenter() {
   });
 
   
-  const handleLayoutChange = (currentLayout: any, allLayouts: any) => {
+  const handleLayoutChange = (currentLayout: unknown, allLayouts: unknown) => {
     setLayouts(allLayouts);
     localStorage.setItem('ssip_command_center_layouts', JSON.stringify(allLayouts));
     };

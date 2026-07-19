@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/ca
 import { useLivePipeline } from '../../lib/LiveEventPipeline';
 
 export function SecurityCenter() {
-  const { data: liveContext } = useLivePipeline<{ alerts?: any[] }>('stadiumLive', async () => ({}));
+  const { data: liveContext } = useLivePipeline<{ alerts?: unknown[] }>('stadiumLive', async () => ({}));
   const [activeCamera, setActiveCamera] = useState(1);
   const [zones, setZones] = useState([
     { id: 1, name: 'North Gate', status: 'secure', people: 1450, lastIncident: '2 hours ago' },

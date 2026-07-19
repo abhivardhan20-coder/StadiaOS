@@ -202,7 +202,7 @@ export function ExecutiveAnalytics() {
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', backgroundColor: 'var(--tw-colors-slate-900)', color: 'white' }}
                     itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                    formatter={(value: any) => [`$${value}k`, undefined]}
+                    formatter={(value: unknown) => [`$${value}k`, undefined]}
                     cursor={{ fill: 'var(--tw-colors-slate-100)', opacity: 0.5 }}
                   />
                   <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} iconType="circle" />

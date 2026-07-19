@@ -130,7 +130,7 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
 }
 
 export interface AuthenticatedRequest extends Request {
-  user?: { id: string; email: string; name?: string; [key: string]: any };
+  user?: { id: string; email: string; name?: string; [key: string]: unknown };
 }
 
 const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -140,9 +140,9 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
   }
   try {
     const decoded = jwt.verify(token, JWT_SECRET as string);
-    req.user = decoded as any;
+    req.user = decoded as Record<string, unknown>;
     next();
-  } catch (error) {
+  } catch (error: unknown) {
     return res.status(401).json({ error: 'unauthorized' });
   }
 };
@@ -220,7 +220,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
         window.close();
       </script></body></html>
     `);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('OAuth error:', error);
     res.send(`
       <html><body><script>
@@ -260,7 +260,7 @@ app.use(helmet({
   crossOriginResourcePolicy: false,
   crossOriginOpenerPolicy: isProd ? { policy: 'same-origin' } : false,
   contentSecurityPolicy: isProd ? {
-    directives: cspDirectives as any,
+    directives: cspDirectives as Record<string, Iterable<string>>,
   } : false,
 }));
 app.use(cors({ origin: process.env.APP_URL || 'http://localhost:3000' }));
@@ -275,7 +275,7 @@ app.post("/api/ops-copilot", requireAuth, requireCsrf, async (req: Authenticated
     const parsed = opsCopilotSchema.parse(req.body);
     const { prompt, context } = parsed;
     
-    const policy = evaluateOpsPolicy(context as any);
+    const policy = evaluateOpsPolicy(context);
     
     const systemInstruction = `You are Ops Copilot, an AI assistant for the Smart Stadium Intelligence Platform (SSIP) at the FIFA World Cup 2026. 
 You provide real-time decision support based on the provided context (telemetry, weather, crowd data). 
@@ -508,7 +508,7 @@ Schema required: {
       result = JSON.parse(response.text || "{}");
       if (!result.route_steps) throw new Error("Invalid schema");
       
-      if (stepFreeOnly && result.route_steps.some((step: any) => step.type === "stairs")) {
+      if (stepFreeOnly && result.route_steps.some((step: { type: string }) => step.type === "stairs")) {
         throw new Error("step_free_violation");
       }
       
@@ -558,7 +558,7 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     return res.status(400).json({ error: "bad_request", message: "Malformed JSON payload." });
   }
 
-  const status = typeof err === 'object' && err !== null && 'status' in err && typeof (err as any).status === 'number' ? (err as any).status : 500;
+  const status = typeof err === 'object' && err !== null && 'status' in err && typeof (err as Record<string, unknown>).status === 'number' ? (err as Record<string, unknown>).status as number : 500;
   const message = err instanceof Error ? err.message : "An unexpected error occurred.";
 
   res.status(status).json({ 

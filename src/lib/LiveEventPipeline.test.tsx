@@ -63,7 +63,7 @@ describe('LiveEventPipeline', () => {
     });
 
     act(() => {
-      result.current.optimisticUpdate((prev: any) => ({ ...prev, val: 2 }));
+      result.current.optimisticUpdate((prev: unknown) => ({ ...prev, val: 2 }));
     });
 
     await waitFor(() => {
