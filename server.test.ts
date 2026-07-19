@@ -8,9 +8,9 @@ vi.mock('@google/genai', () => {
   const mockGenerateContentStream = async function* () {
     yield { text: 'mock response part 1' };
   };
-  
+
   class MockGoogleGenAI {
-    models = { 
+    models = {
       generateContent: vi.fn().mockResolvedValue({ text: JSON.stringify({ translatedText: 'test' }) }),
       generateContentStream: vi.fn().mockReturnValue(mockGenerateContentStream()),
     };
@@ -40,7 +40,7 @@ describe('POST /api/ops-copilot', () => {
     const res = await request(app).post('/api/ops-copilot').send({ prompt: 'Show Gate 7 status' });
     expect(res.status).toBe(401);
   });
-  
+
   it('rejects an empty prompt with 400', async () => {
     const res = await request(app)
       .post('/api/ops-copilot')
@@ -144,8 +144,8 @@ describe('Zod Schemas directly', () => {
   it('validates wayfinderSchema directly (valid + invalid cases)', () => {
     const valid = { destination: 'Gate A', stepFreeOnly: true, role: 'Staff' };
     expect(() => wayfinderSchema.parse(valid)).not.toThrow();
-    
-    const invalid = { stepFreeOnly: true }; 
+
+    const invalid = { stepFreeOnly: true };
     expect(() => wayfinderSchema.parse(invalid)).toThrow();
   });
 
@@ -153,7 +153,7 @@ describe('Zod Schemas directly', () => {
     const valid = { text: 'Hello', targetLanguage: 'es' };
     expect(() => polyglotSchema.parse(valid)).not.toThrow();
 
-    const invalid = { text: '' }; 
+    const invalid = { text: '' };
     expect(() => polyglotSchema.parse(invalid)).toThrow();
   });
 });
@@ -161,7 +161,7 @@ describe('Zod Schemas directly', () => {
 describe('Rate Limiting', () => {
   it('enforces rate limiting after N requests', async () => {
     let finalStatus = 200;
-    for (let i = 0; i < 35; i++) {
+    for (let i = 0; i < 15; i++) {
       const res = await request(app)
         .post('/api/ops-copilot')
         .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
@@ -173,5 +173,43 @@ describe('Rate Limiting', () => {
       }
     }
     expect(finalStatus).toBe(429);
+  });
+});
+
+describe('JWT_SECRET validation', () => {
+  it('should exit when NODE_ENV=production and JWT_SECRET is not set', async () => {
+    // Save original env
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalJwtSecret = process.env.JWT_SECRET;
+
+    // Set NODE_ENV=production and unset JWT_SECRET
+    process.env.NODE_ENV = 'production';
+    delete process.env.JWT_SECRET;
+
+    // Expect that importing the server module exits
+    // Since the server calls process.exit(1) on invalid config, we can spy on process.exit
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit called with code ${code}`);
+    });
+
+    try {
+      // Reset module cache and import the server module to trigger top-level code
+      vi.resetModules();
+      await import('./server');
+      // If we reach here, it means process.exit was not called
+      expect(true).toBe(false);
+    } catch (e) {
+      // Expect the exitSpy to have been called with 1
+      expect(exitSpy).toHaveBeenCalledWith(1);
+    } finally {
+      // Restore env
+      process.env.NODE_ENV = originalNodeEnv;
+      if (originalJwtSecret !== undefined) {
+        process.env.JWT_SECRET = originalJwtSecret;
+      } else {
+        delete process.env.JWT_SECRET;
+      }
+      exitSpy.mockRestore();
+    }
   });
 });

@@ -104,6 +104,15 @@ export const wayfinderSchema = z.object({
 });
 
 // Rate limiters
+
+const aiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // Limit each IP to 10 requests per `window`
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "AI request limit reached, please slow down." },
+  validate: { trustProxy: true }
+});
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 30, // Limit each IP to 30 requests per `window`
@@ -121,10 +130,15 @@ app.use(cookieParser());
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_dev_environments_only';
-if (!process.env.JWT_SECRET) {
-  console.error('WARNING: JWT_SECRET is not set. Using fallback secret.');
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET must be set in production. Refusing to start.');
+    process.exit(1);
+  }
+  console.warn('WARNING: JWT_SECRET is not set. Using an insecure dev-only fallback.');
 }
+const EFFECTIVE_JWT_SECRET = JWT_SECRET || 'fallback_secret_for_dev_environments_only';
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn('OAuth secrets missing. OAuth will fail.');
 }
@@ -139,7 +153,7 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunctio
     return res.status(401).json({ error: 'unauthorized' });
   }
   try {
-    const decoded = jwt.verify(token, JWT_SECRET as string);
+    const decoded = jwt.verify(token, EFFECTIVE_JWT_SECRET as string);
     req.user = decoded as Record<string, unknown>;
     next();
   } catch (error: unknown) {
@@ -208,7 +222,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
     });
     const userInfo = await userInfoResponse.json();
 
-    const token = jwt.sign(userInfo, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(userInfo, EFFECTIVE_JWT_SECRET, { expiresIn: '1d' });
     res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
     
     const csrfToken = crypto.randomBytes(32).toString('hex');
@@ -270,7 +284,7 @@ app.use(express.json({ limit: "10kb" }));
 app.use("/api", apiLimiter);
 
 // API route for Ops Copilot (Streaming)
-app.post("/api/ops-copilot", requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+app.post("/api/ops-copilot", aiLimiter, requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const parsed = opsCopilotSchema.parse(req.body);
     const { prompt, context } = parsed;
@@ -338,7 +352,7 @@ ${JSON.stringify(context, null, 2)}`;
 });
 
 // API route for Polyglot Concierge
-app.post("/api/polyglot", requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+app.post("/api/polyglot", aiLimiter, requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const parsed = polyglotSchema.parse(req.body);
     const { text, targetLanguage, history } = parsed;
@@ -435,7 +449,7 @@ app.get("/api/stadium-live", (req: Request, res: Response) => {
 });
 
 // API route for Green Ops Advisor
-app.get("/api/green-ops", async (req: Request, res: Response, next: NextFunction) => {
+app.get("/api/green-ops", aiLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const context = "Current Time: Active match. Stadium capacity: 90%. Weather: Clear, 22C.";
     const response = await ai.models.generateContent({
@@ -463,7 +477,7 @@ app.get("/api/green-ops", async (req: Request, res: Response, next: NextFunction
 });
 
 // API route for Wayfinder AI
-app.post("/api/wayfinder", requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+app.post("/api/wayfinder", aiLimiter, requireAuth, requireCsrf, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const parsed = wayfinderSchema.parse(req.body);
     const { destination, stepFreeOnly, role } = parsed;
