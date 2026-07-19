@@ -69,6 +69,7 @@ export function UserProfile() {
         ]).map(tab => (
           <button
             key={tab.id}
+            aria-label={tab.label}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-medium text-sm whitespace-nowrap transition-all ${
               activeTab === tab.id 

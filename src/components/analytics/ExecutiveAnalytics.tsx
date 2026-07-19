@@ -63,6 +63,7 @@ export function ExecutiveAnalytics() {
           
           <div className="relative">
             <button 
+              aria-label="Schedule Report"
               onClick={() => { setShowScheduleMenu(!showScheduleMenu); setShowExportMenu(false); }}
               className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm"
             >
@@ -82,6 +83,7 @@ export function ExecutiveAnalytics() {
 
           <div className="relative">
             <button 
+              aria-label="Export Report"
               onClick={() => { setShowExportMenu(!showExportMenu); setShowScheduleMenu(false); }}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 shadow-sm"
             >
@@ -111,6 +113,7 @@ export function ExecutiveAnalytics() {
         {METRICS_CATEGORIES.map(cat => (
           <button 
             key={cat.id}
+            aria-label={`View ${cat.label}`}
             onClick={() => setActiveCategory(cat.id)}
             className={`flex flex-col gap-2 min-w-[140px] p-4 rounded-2xl border transition-all text-left ${
               activeCategory === cat.id 
@@ -149,6 +152,7 @@ export function ExecutiveAnalytics() {
                 {['Today', 'Week', 'Month', 'Year'].map(t => (
                   <button 
                     key={t}
+                    aria-label={`Set time range to ${t}`}
                     onClick={() => setTimeRange(t)}
                     className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${timeRange === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                   >

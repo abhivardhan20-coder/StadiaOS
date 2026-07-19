@@ -45,6 +45,7 @@ export function SecurityCenter() {
                   {[1, 2, 3, 4].map(cam => (
                     <button
                       key={cam}
+                      aria-label={`View camera ${cam}`}
                       onClick={() => setActiveCamera(cam)}
                       className={`px-3 py-1 rounded text-xs font-mono font-medium transition-colors ${
                         activeCamera === cam 
@@ -126,6 +127,7 @@ export function SecurityCenter() {
                       </div>
                     </div>
                     <button
+                      aria-label={zone.status === 'locked' ? 'Unlock Zone' : 'Lockdown Zone'}
                       onClick={() => toggleZoneLock(zone.id)}
                       className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                         zone.status === 'locked'

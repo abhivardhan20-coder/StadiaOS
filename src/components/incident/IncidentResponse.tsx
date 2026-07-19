@@ -132,12 +132,14 @@ export function IncidentResponse() {
             <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl">
               <button 
                 onClick={() => setActiveTab('active')}
+                aria-label="View Active Incidents"
                 className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors ${activeTab === 'active' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 Active
               </button>
               <button 
                 onClick={() => setActiveTab('resolved')}
+                aria-label="View Resolved Incidents"
                 className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-colors ${activeTab === 'resolved' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 Resolved
@@ -175,6 +177,7 @@ export function IncidentResponse() {
                   }}
                   key={incident.id}
                   onClick={() => setSelectedIncident(incident)}
+                  aria-label={`View details for ${incident.title}`}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                     isSelected 
                       ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500/50 shadow-md' 

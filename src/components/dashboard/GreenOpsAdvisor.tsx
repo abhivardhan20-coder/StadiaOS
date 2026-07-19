@@ -101,11 +101,11 @@ export function GreenOpsAdvisor() {
           <p className="text-sm text-slate-500">Real-time ESG metrics and AI forecasting</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 shadow-sm text-indigo-600 dark:text-indigo-400" onClick={handleGenerateReport} disabled={isGenerating}>
+          <Button variant="outline" className="bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 shadow-sm text-indigo-600 dark:text-indigo-400" aria-label="Generate Report" onClick={handleGenerateReport} disabled={isGenerating}>
             {isGenerating ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
             {isGenerating ? 'Generating...' : 'Auto-Report'}
           </Button>
-          <Button variant="outline" className="bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 shadow-sm" onClick={() => fetchData()} disabled={isLoading}>
+          <Button variant="outline" className="bg-white/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/50 shadow-sm" aria-label="Refresh Data" onClick={() => fetchData()} disabled={isLoading}>
             <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
             Refresh
           </Button>

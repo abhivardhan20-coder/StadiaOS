@@ -111,6 +111,7 @@ export function WayfinderAI() {
                <Button 
                   variant={evacuationMode ? "destructive" : "outline"}
                   className="w-full justify-start h-12 font-bold"
+                  aria-label="Toggle evacuation mode"
                   onClick={() => setEvacuationMode(!evacuationMode)}
                 >
                   {evacuationMode ? "EVACUATION MODE ACTIVE" : "Enable Evacuation Routing"}
@@ -131,6 +132,7 @@ export function WayfinderAI() {
                       "justify-start h-9 text-xs",
                       role === r ? "bg-indigo-600 hover:bg-indigo-700 shadow-md" : "bg-white/60 dark:bg-slate-800/60"
                     )}
+                    aria-label={`Set role to ${r}`}
                     onClick={() => { setRole(r); setIsLiveActive(false); }}
                   >
                     {r}
@@ -150,6 +152,7 @@ export function WayfinderAI() {
                   onKeyDown={(e) => { if(e.key === 'Enter') handleSearch(); }}
                 />
                 <Button 
+                  aria-label="Find Route"
                   onClick={() => handleSearch()} 
                   disabled={isLoading || !destination.trim()}
                   className="h-12 px-6 bg-indigo-600 hover:bg-indigo-500 text-white shadow-md disabled:opacity-50"
@@ -166,6 +169,7 @@ export function WayfinderAI() {
                 <Badge 
                   variant={stepFree ? "default" : "outline"} 
                   className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5", stepFree ? "bg-emerald-500 hover:bg-emerald-600" : "bg-white/60 dark:bg-slate-800/60")}
+                  aria-label="Toggle step-free wheelchairs"
                   onClick={() => setStepFree(!stepFree)}
                   role="button"
                   tabIndex={0}
@@ -176,6 +180,7 @@ export function WayfinderAI() {
                 <Badge 
                   variant={stepFree ? "default" : "outline"} 
                   className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5", stepFree ? "bg-emerald-500 hover:bg-emerald-600" : "bg-white/60 dark:bg-slate-800/60")}
+                  aria-label="Toggle step-free elevators"
                   onClick={() => setStepFree(!stepFree)}
                   role="button"
                   tabIndex={0}
@@ -186,6 +191,7 @@ export function WayfinderAI() {
                 <Badge 
                   variant={vipAccess ? "default" : "outline"} 
                   className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5", vipAccess ? "bg-amber-500 hover:bg-amber-600 text-amber-950" : "bg-white/60 dark:bg-slate-800/60")}
+                  aria-label="Toggle VIP access"
                   onClick={() => setVipAccess(!vipAccess)}
                   role="button"
                   tabIndex={0}
@@ -206,6 +212,7 @@ export function WayfinderAI() {
                         key={opt.id}
                         variant={isActive ? "destructive" : "outline"}
                         className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5 transition-all", isActive ? "opacity-100" : "opacity-70 bg-white/60 dark:bg-slate-800/60")}
+                        aria-label={`Toggle avoid ${opt.label}`}
                         onClick={() => toggleAvoid(opt.id)}
                         role="button"
                         tabIndex={0}
