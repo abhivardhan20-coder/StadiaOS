@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 
+/**
+ * A React hook that observes and returns the current width of a container element.
+ * Useful for responsive visualizations that need to know their exact pixel width.
+ * @returns An object containing the current width, a ref to attach to the container, and a boolean indicating if it has mounted.
+ */
 export function useContainerWidth() {
   const [width, setWidth] = useState(1200);
   const [mounted, setMounted] = useState(false);

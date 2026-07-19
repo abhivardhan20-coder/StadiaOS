@@ -1,30 +1,14 @@
 # Security Policy
 
-## Secret Management
-- Environment variables are used for secrets (JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GEMINI_API_KEY).
-- `.env` file is gitignored and must not be committed.
-- In production, `JWT_SECRET` must be set; missing secret causes the app to exit.
+## Supported Versions
+Only the latest branch (`main`) is actively supported with security updates.
 
-## CSRF Protection
-- Double-submit cookie pattern: a random CSRF token is stored in an encrypted cookie (`csrf_token`) and must be sent via the `x-csrf-token` header on state-changing requests.
-- Middleware validates that the token matches.
-
-## JWT Session Handling
-- Sessions are JSON Web Tokens signed with `JWT_SECRET`.
-- Tokens contain user ID and name, expire in 1 day.
-- Tokens are stored in HTTP-only, Secure cookies named `token`.
-- In development, a fallback secret is used only when `NODE_ENV` is not production.
-
-## CSP and Helmet
-- HTTP headers are set via Helmet.js:
-  - Content Security Policy restricts sources for scripts, styles, etc.
-  - Other headers (XSS protection, no-sniff, etc.) are enabled.
-- Adjustments are made to allow inline styles/scripts required by the UI framework.
-
-## Rate Limiting
-- General API rate limit: 30 requests per minute per IP.
-- AI-specific endpoints (`/ops-copilot`, `/polyglot`, `/wayfinder`, `/green-ops`) have a stricter limit of 10 requests per minute per IP.
-- Limits prevent abuse and control costs associated with external AI calls.
+## Threat Model & Security Features
+- **Secret Management**: All sensitive keys (e.g. `GEMINI_API_KEY`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`) must be provided via the `.env` file, which is strictly omitted from version control.
+- **CSRF Protection**: A double-submit cookie strategy is enforced on all non-GET routes using custom middleware in the backend. 
+- **Session Handling**: Authentication is managed via HTTP-Only, Secure JWT cookies. The backend will refuse to start in production if `JWT_SECRET` is unset, explicitly averting fallback vulnerabilities.
+- **CSP & Helmet**: Standard browser security is enforced via `helmet`. The Content Security Policy explicitly limits script origins and frame embedding for maximum safety.
+- **Rate Limiting**: AI endpoints use a strict secondary rate limit layer (10 req/min/IP) to prevent abuse and excessive API costs, independent of the general API limit (30 req/min/IP).
 
 ## Reporting a Vulnerability
-If you discover a security issue, please contact the repository maintainer via GitHub Issues or email (if provided). Do not disclose the issue publicly until a fix is available.
+If you discover a vulnerability, please do NOT file a public issue. Instead, email the repository maintainers securely. We will respond with an initial assessment within 48 hours.

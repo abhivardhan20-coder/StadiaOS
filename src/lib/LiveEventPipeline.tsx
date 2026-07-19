@@ -19,6 +19,9 @@ interface PipelineState {
   };
 }
 
+/**
+ * Represents a standard message within the live event pipeline.
+ */
 export interface EventMessage {
   id: string;
   channel: string;
@@ -139,7 +142,7 @@ class EventBus {
           }
           this.handleIncomingMessage(msg as EventMessage);
         } catch (_e) {
-          console.error("Pipeline fetch error", _e);
+          console.warn("Pipeline message parse error", _e instanceof Error ? _e.message : String(_e));
         }
       };
 
@@ -150,7 +153,8 @@ class EventBus {
       this.ws.onerror = () => {
         this.handleWsClose();
       };
-    } catch {
+    } catch (_err) {
+      console.warn("Failed to connect WebSocket", _err instanceof Error ? _err.message : "Unknown error");
       this.handleWsClose();
     }
   }
@@ -371,7 +375,7 @@ class EventBus {
       this.handleIncomingMessage(msg);
       
     } catch (_e) {
-      console.error("Pipeline fetch error", _e);
+      console.warn("Pipeline fetch error", _e instanceof Error ? _e.message : String(_e));
       this.metadata[key] = {
         lastUpdated: this.metadata[key]?.lastUpdated || Date.now(),
         status: 'error',
@@ -401,9 +405,19 @@ class EventBus {
   }
 }
 
+/**
+ * The singleton instance of the EventBus, managing all live data streams,
+ * WebSocket connections, and offline queues for the application.
+ */
 export const pipelineCore = new EventBus();
 const PipelineContext = createContext<PipelineState>(pipelineCore.getState());
 
+/**
+ * A context provider that subscribes to the pipelineCore state and provides it
+ * to all descendant components.
+ * @param props - The component props containing children.
+ * @returns A PipelineContext.Provider wrapping the children.
+ */
 export const PipelineProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [state, setState] = useState<PipelineState>(pipelineCore.getState());
 

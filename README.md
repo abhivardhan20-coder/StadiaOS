@@ -1,4 +1,7 @@
 # Smart Stadium Intelligence Platform
+![CI](https://github.com/abhivardhan20-coder/StadiaOS/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Node](https://img.shields.io/badge/Node-v20-green.svg)
 
 This application is a real-time smart stadium intelligence platform designed to provide actionable insights and AI-powered operational assistance for large-scale events and venues. It combines live crowd density monitoring, AI-driven wayfinding, multilingual concierge services, and sustainability tracking (GreenOps) into a unified digital twin dashboard.
 
@@ -9,7 +12,20 @@ This solution was built specifically for the **stadium operations and security t
 ## Approach and Logic
 
 ### Deterministic Decision Logic
-The application enforces strict operational protocols through deterministic rules in `evaluateOpsPolicy` (located in `server.ts`) before any LLM is called. It uses hard thresholds: when crowd density reaches **75%**, it triggers a "suggest" level; at **85%** or higher, it forces an "escalate" level. This computed severity level is injected into Gemini's system prompt as a non-negotiable constraint. This ensures the AI cannot hallucinate a lower-severity response during a real emergency. This logic is fully verified in isolation from the AI (see `evaluateOpsPolicy.test.ts`).
+The application enforces strict operational protocols through deterministic rules in `evaluateOpsPolicy` (located in `src/server/policy/evaluateOpsPolicy.ts`) before any LLM is called. It uses hard thresholds: when crowd density reaches **75%**, it triggers a "suggest" level; at **85%** or higher, it forces an "escalate" level. This computed severity level is injected into Gemini's system prompt as a non-negotiable constraint. This ensures the AI cannot hallucinate a lower-severity response during a real emergency. This logic is fully verified in isolation from the AI (see `evaluateOpsPolicy.test.ts`).
+
+## Performance & Efficiency
+- **WebSocket Broadcast Tradeoff**: The server broadcasts live metrics every 4 seconds. This is a deliberate tradeoff to prioritize real-time updates while maintaining low overhead and server responsiveness, easily handling the 500-client cap.
+- **Client Limits**: The WebSocket connection caps at 500 simultaneous clients to ensure strict performance boundaries and avoid denial of service. 
+- **Request Body Limits**: Enforced 10kb JSON body limits on the express server to safeguard against payload bloat.
+- **AI Rate Limiting**: The Gemini-backed AI routes utilize a separate, stricter rate limiter (10 req/min/IP) to strictly control and monitor AI token cost usage independently from general API use.
+- **GreenOps Caching**: The `/api/green-ops` endpoint relies on an in-memory 30-second TTL cache to prevent redundant Gemini API calls from connected polling clients, saving substantial API costs and reducing response latency.
+
+## Known Limitations
+- **Single-Process WebSocket State**: The WebSocket broadcaster currently relies on in-memory state. This assumes a single Node process constraint; scaling horizontally would require a Redis pub-sub integration.
+- **In-Memory Rate Limiting**: Our rate limit counts are held in memory. In a distributed multi-node production environment, a Redis backend would be added to enforce these limits globally.
+- **Mock Data Semantics**: Due to potential Gemini API strict limits or network dropouts, AI responses degrade gracefully to static mock data fallback semantics (instead of failing completely), which might present repetitive responses during severe network issues.
+
 
 The application leverages a real-time data pipeline powered by a custom WebSocket/Polling hybrid architecture. Instead of relying solely on REST APIs, the frontend components subscribe to specific data channels (like `stadiumLive` and `greenOps`). This provides a reactive UI that dynamically updates without user intervention.
 

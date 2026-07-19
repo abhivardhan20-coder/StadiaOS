@@ -16,6 +16,11 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+/**
+ * A context provider that manages toast notifications for the application.
+ * @param props - The component props containing children.
+ * @returns A ToastContext.Provider wrapping the children and the toast display container.
+ */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -71,6 +76,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * A React hook that returns the toast context for triggering toast notifications.
+ * @returns An object containing the addToast function.
+ * @throws Error if used outside of a ToastProvider.
+ */
 export function useToast() {
   const context = useContext(ToastContext);
   if (context === undefined) {

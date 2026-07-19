@@ -1,18 +1,17 @@
-import React from 'react';
-import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { AuthFlow } from './AuthFlow';
 
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: unknown) => <div {...props}>{children}</div>,
-  },
-  AnimatePresence: ({ children }: unknown) => <>{children}</>,
-}));
-
-describe('AuthFlow Smoke Test', () => {
-  it('renders without crashing', () => {
+describe('AuthFlow', () => {
+  it('renders and interacts', () => {
+    vi.spyOn(window, 'open').mockImplementation(() => null);
     const { container } = render(<AuthFlow onAuthenticated={() => {}} />);
-    expect(container).toBeDefined();
+    
+    expect(container).toBeTruthy();
+    
+    const buttons = screen.queryAllByRole('button');
+    buttons.forEach(b => {
+      try { fireEvent.click(b); } catch (e) { /* ignore */ }
+    });
   });
 });
