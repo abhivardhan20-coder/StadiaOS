@@ -219,11 +219,11 @@ export function PolyglotConcierge() {
                  <Globe className="h-16 w-16 opacity-20" />
                  <p className="text-base font-medium">Start typing or speaking in any language...</p>
                  <div className="flex flex-wrap justify-center gap-2 max-w-lg mt-4">
-                   <Badge variant="outline" className="cursor-pointer hover:bg-indigo-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Where is my seat? Ticket: Block 102')}>Navigation Help</Badge>
-                   <Badge variant="outline" className="cursor-pointer hover:bg-amber-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Can I order 2 hotdogs to my seat?')}>Food Ordering</Badge>
-                   <Badge variant="outline" className="cursor-pointer hover:bg-rose-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Medical emergency, need help')}>Emergency</Badge>
-                   <Badge variant="outline" className="cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Is there wheelchair access near Gate 4?')}>Accessibility</Badge>
-                   <Badge variant="outline" className="cursor-pointer hover:bg-sky-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('I lost my child near the west entrance')}>Lost Child</Badge>
+                   <Badge variant="outline" className="cursor-pointer hover:bg-indigo-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Where is my seat? Ticket: Block 102')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleTranslate('Where is my seat? Ticket: Block 102')}>Navigation Help</Badge>
+                   <Badge variant="outline" className="cursor-pointer hover:bg-amber-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Can I order 2 hotdogs to my seat?')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleTranslate('Can I order 2 hotdogs to my seat?')}>Food Ordering</Badge>
+                   <Badge variant="outline" className="cursor-pointer hover:bg-rose-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Medical emergency, need help')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleTranslate('Medical emergency, need help')}>Emergency</Badge>
+                   <Badge variant="outline" className="cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('Is there wheelchair access near Gate 4?')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleTranslate('Is there wheelchair access near Gate 4?')}>Accessibility</Badge>
+                   <Badge variant="outline" className="cursor-pointer hover:bg-sky-50 dark:hover:bg-slate-800 py-2 px-4 shadow-sm" onClick={() => handleTranslate('I lost my child near the west entrance')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleTranslate('I lost my child near the west entrance')}>Lost Child</Badge>
                  </div>
                </motion.div>
             )}
@@ -264,7 +264,7 @@ export function PolyglotConcierge() {
                       <span className="italic truncate max-w-[200px]">"{msg.original}"</span>
                       {msg.detectedLang && <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-white dark:bg-slate-700 shadow-sm">{msg.detectedLang}</Badge>}
                       {msg.confidence !== undefined && <Badge variant={msg.confidence > 80 ? "default" : "secondary"} className={`text-[9px] px-1.5 py-0 shadow-sm ${msg.confidence > 80 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}>{msg.confidence}% Conf</Badge>}
-                      <Button size="icon" variant="ghost" className="h-5 w-5 hover:text-indigo-600" onClick={() => playTTS(msg.content, msg.targetLang)}>
+                      <Button size="icon" variant="ghost" className="h-5 w-5 hover:text-indigo-600" onClick={() => playTTS(msg.content, msg.targetLang)} aria-label="Play text-to-speech">
                         <Volume2 className="h-3 w-3" />
                       </Button>
                     </div>
@@ -344,7 +344,7 @@ export function PolyglotConcierge() {
           )}
           
           <div className="flex w-full gap-2 relative">
-            <Button size="icon" variant="outline" className="shrink-0 h-12 w-12 rounded-xl text-slate-500 bg-white/60 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 shadow-sm" onClick={() => addToast('QR Scanner activated (Mock)', 'info')}>
+            <Button size="icon" variant="outline" className="shrink-0 h-12 w-12 rounded-xl text-slate-500 bg-white/60 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 shadow-sm" onClick={() => addToast('QR Scanner activated (Mock)', 'info')} aria-label="Scan QR Code">
               <QrCode className="h-5 w-5" />
             </Button>
             

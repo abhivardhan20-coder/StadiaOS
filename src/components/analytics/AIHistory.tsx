@@ -189,6 +189,14 @@ export function AIHistory() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => setSelectedInteraction(interaction)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedInteraction(interaction);
+                    }
+                  }}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex gap-4 ${
                     selectedInteraction?.id === interaction.id
                       ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30'
@@ -259,6 +267,7 @@ export function AIHistory() {
                         ? 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-500/20' 
                         : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
+                    aria-label={selectedInteraction.isBookmarked ? "Remove bookmark" : "Bookmark"}
                   >
                     <Bookmark className={`h-4 w-4 ${selectedInteraction.isBookmarked ? 'fill-current' : ''}`} />
                   </button>
@@ -269,12 +278,14 @@ export function AIHistory() {
                         ? 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-500/20' 
                         : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
+                    aria-label={selectedInteraction.isPinned ? "Unpin" : "Pin"}
                   >
                     <Pin className={`h-4 w-4 ${selectedInteraction.isPinned ? 'fill-current' : ''}`} />
                   </button>
                   <button 
                     onClick={() => setSelectedInteraction(null)} 
                     className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors ml-2"
+                    aria-label="Close details"
                   >
                     <X className="h-5 w-5" />
                   </button>

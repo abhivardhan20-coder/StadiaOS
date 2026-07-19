@@ -61,6 +61,7 @@ export function WidgetContainer({
         <button 
           onClick={handleRefresh}
           className="p-1 rounded-md text-slate-400 hover:text-indigo-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors"
+          aria-label="Refresh widget"
         >
           <RefreshCw className={cn("h-3.5 w-3.5", (isRefreshing || actualStatus === 'loading') && "animate-spin text-indigo-500")} />
         </button>
@@ -68,6 +69,7 @@ export function WidgetContainer({
         <button 
           onClick={() => setIsFullscreen(!isFullscreen)}
           className="p-1 rounded-md text-slate-400 hover:text-indigo-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors"
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
         >
           {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
         </button>

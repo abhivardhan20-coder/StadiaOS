@@ -167,6 +167,9 @@ export function WayfinderAI() {
                   variant={stepFree ? "default" : "outline"} 
                   className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5", stepFree ? "bg-emerald-500 hover:bg-emerald-600" : "bg-white/60 dark:bg-slate-800/60")}
                   onClick={() => setStepFree(!stepFree)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && setStepFree(!stepFree)}
                 >
                   <Accessibility className="h-3 w-3" /> Step-Free (Wheelchairs)
                 </Badge>
@@ -174,6 +177,9 @@ export function WayfinderAI() {
                   variant={stepFree ? "default" : "outline"} 
                   className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5", stepFree ? "bg-emerald-500 hover:bg-emerald-600" : "bg-white/60 dark:bg-slate-800/60")}
                   onClick={() => setStepFree(!stepFree)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && setStepFree(!stepFree)}
                 >
                   <Baby className="h-3 w-3" /> Stroller / Parents
                 </Badge>
@@ -181,6 +187,9 @@ export function WayfinderAI() {
                   variant={vipAccess ? "default" : "outline"} 
                   className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5", vipAccess ? "bg-amber-500 hover:bg-amber-600 text-amber-950" : "bg-white/60 dark:bg-slate-800/60")}
                   onClick={() => setVipAccess(!vipAccess)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && setVipAccess(!vipAccess)}
                 >
                   <Crown className="h-3 w-3" /> VIP Access
                 </Badge>
@@ -198,6 +207,9 @@ export function WayfinderAI() {
                         variant={isActive ? "destructive" : "outline"}
                         className={cn("cursor-pointer py-1.5 px-3 text-xs flex items-center gap-1.5 transition-all", isActive ? "opacity-100" : "opacity-70 bg-white/60 dark:bg-slate-800/60")}
                         onClick={() => toggleAvoid(opt.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && toggleAvoid(opt.id)}
                      >
                        <opt.icon className="h-3 w-3" />
                        {opt.label}

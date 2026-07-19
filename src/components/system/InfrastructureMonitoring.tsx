@@ -137,6 +137,14 @@ return (
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => setSelectedService(service)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedService(service);
+                    }
+                  }}
                   className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 cursor-pointer transition-all hover:shadow-md ${
                     selectedService?.id === service.id 
                       ? 'border-indigo-300 dark:border-indigo-600 shadow-sm' 

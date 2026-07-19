@@ -190,6 +190,7 @@ export function FacilityAdmin() {
             <button 
               onClick={handleAddNew}
               className="flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition-colors shadow-sm"
+              aria-label="Add New"
             >
               <Plus className="h-5 w-5" />
             </button>
@@ -257,12 +258,14 @@ export function FacilityAdmin() {
                           <button 
                             onClick={() => handleEdit(item)}
                             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"
+                            aria-label="Edit item"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button 
                             onClick={() => handleDelete(item.id)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/20 rounded-lg transition-colors"
+                            aria-label="Delete item"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -303,7 +306,7 @@ export function FacilityAdmin() {
                   <h3 className="font-bold text-lg text-slate-900 dark:text-white">
                     {isNew ? 'Add New Record' : 'Edit Record'}
                   </h3>
-                  <button onClick={() => setEditingItem(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1">
+                  <button onClick={() => setEditingItem(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1" aria-label="Close modal">
                     <X className="h-5 w-5" />
                   </button>
                 </div>

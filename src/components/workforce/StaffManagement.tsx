@@ -218,6 +218,14 @@ export function StaffManagement() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => setSelectedEmployee(emp)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedEmployee(emp);
+                    }
+                  }}
                   className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-all hover:shadow-md group flex flex-col"
                 >
                   <div className="flex justify-between items-start mb-3">
