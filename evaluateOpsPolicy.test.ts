@@ -43,4 +43,37 @@ describe('evaluateOpsPolicy', () => {
     expect(result.suggestedActions).toContain('Consider opening overflow route near Gate A');
     expect(result.suggestedActions).toContain('Dispatch security/medical to Gate B');
   });
+
+  it('returns suggest level when density is exactly 75', () => {
+    const result = evaluateOpsPolicy({ zones: [{ name: 'Gate D', density: 75 }] });
+    expect(result.level).toBe('suggest');
+    expect(result.reasons).toEqual(['Gate D density at 75% (>= 75%)']);
+    expect(result.suggestedActions).toEqual(['Consider opening overflow route near Gate D']);
+  });
+
+  it('returns escalate level when density is exactly 85', () => {
+    const result = evaluateOpsPolicy({ zones: [{ name: 'Gate E', density: 85 }] });
+    expect(result.level).toBe('escalate');
+    expect(result.reasons).toEqual(['Gate E density at 85% (>= 85%)']);
+    expect(result.suggestedActions).toEqual(['Dispatch security/medical to Gate E']);
+  });
+
+  it('returns normal level when zones array is empty', () => {
+    const result = evaluateOpsPolicy({ zones: [] });
+    expect(result.level).toBe('normal');
+    expect(result.reasons).toEqual([]);
+    expect(result.suggestedActions).toEqual([]);
+  });
+
+  it('returns escalate level when multiple zones are over the escalate threshold', () => {
+    const result = evaluateOpsPolicy({
+      zones: [
+        { name: 'Gate A', density: 88 },
+        { name: 'Gate B', density: 92 }
+      ]
+    });
+    expect(result.level).toBe('escalate');
+    expect(result.reasons).toContain('Gate A density at 88% (>= 85%)');
+    expect(result.reasons).toContain('Gate B density at 92% (>= 85%)');
+  });
 });

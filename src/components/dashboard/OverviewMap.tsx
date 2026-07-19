@@ -95,24 +95,20 @@ export function OverviewMap() {
   
   const [activeLayer, setActiveLayer] = useState(LAYERS[0]?.id || 'density');
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
-  const [layerData, setLayerData] = useState<Record<string, any>>({}) 
   
-    // Synchronize with live pipeline
-  useEffect(() => {
-    const baseData = generateMockDataForLayer(activeLayer);
-    
-    // Override with live context if available
-    if (liveContext?.zones) {
-      liveContext.zones.forEach(z => {
-        if (baseData[z.id]) {
-          baseData[z.id].value = z.density;
-          baseData[z.id].status = z.status;
-        }
-      });
-    }
-    
-    setLayerData(baseData);
-  }, [activeLayer, liveContext]);
+  // Synchronize with live pipeline
+  const baseData = generateMockDataForLayer(activeLayer);
+  
+  // Override with live context if available
+  if (liveContext?.zones) {
+    liveContext.zones.forEach(z => {
+      if (baseData[z.id]) {
+        baseData[z.id].value = z.density;
+        baseData[z.id].status = z.status;
+      }
+    });
+  }
+  const layerData = baseData;
 
   const getColorForValue = (value: number, layer: string) => {
     if (value === 0) return 'rgba(100, 116, 139, 0.1)';

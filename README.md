@@ -8,6 +8,9 @@ This solution was built specifically for the **stadium operations and security t
 
 ## Approach and Logic
 
+### Deterministic Decision Logic
+The application enforces strict operational protocols through deterministic rules in `evaluateOpsPolicy` (located in `server.ts`) before any LLM is called. It uses hard thresholds: when crowd density reaches **75%**, it triggers a "suggest" level; at **85%** or higher, it forces an "escalate" level. This computed severity level is injected into Gemini's system prompt as a non-negotiable constraint. This ensures the AI cannot hallucinate a lower-severity response during a real emergency. This logic is fully verified in isolation from the AI (see `evaluateOpsPolicy.test.ts`).
+
 The application leverages a real-time data pipeline powered by a custom WebSocket/Polling hybrid architecture. Instead of relying solely on REST APIs, the frontend components subscribe to specific data channels (like `stadiumLive` and `greenOps`). This provides a reactive UI that dynamically updates without user intervention.
 
 We use the Gemini API to power two primary AI capabilities with specific decision-making rules:
@@ -47,3 +50,7 @@ graph TD
 - We assume a high-throughput, low-latency network connection for the live dashboard to receive near-real-time WebSocket updates.
 - The digital twin relies on approximate zonal density models rather than precise individual tracking for privacy reasons.
 - The Gemini API is assumed to be responsive; fallback mock responses are provided if the API quota is exceeded or fails.
+- Content Security Policy (CSP) and double-submit CSRF protection are strictly enforced for security. Wayfinder step-free rules and Ops Policy thresholds are strictly evaluated in code to guarantee deterministic guardrails.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

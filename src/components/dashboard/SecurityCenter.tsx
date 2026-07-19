@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Shield, AlertTriangle, CheckCircle, Video, Lock, Unlock, Map, Users, Clock, AlertCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Video, Lock, Unlock, Map, Users, Clock } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card';
+import { useLivePipeline } from '../../lib/LiveEventPipeline';
 
 export function SecurityCenter() {
+  const { data: liveContext } = useLivePipeline<{ alerts?: any[] }>('stadiumLive', async () => ({}));
   const [activeCamera, setActiveCamera] = useState(1);
   const [zones, setZones] = useState([
     { id: 1, name: 'North Gate', status: 'secure', people: 1450, lastIncident: '2 hours ago' },
@@ -14,6 +16,9 @@ export function SecurityCenter() {
   const toggleZoneLock = (id: number) => {
     setZones(zones.map(z => z.id === id ? { ...z, status: z.status === 'locked' ? 'secure' : 'locked' } : z));
   };
+
+  const activeAlerts = liveContext?.alerts?.filter(a => a.status === 'active') || [];
+  const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical');
 
   return (
     <div className="flex flex-col h-full gap-6 max-w-7xl mx-auto w-full">
@@ -27,10 +32,24 @@ export function SecurityCenter() {
             <CheckCircle className="h-4 w-4" /> All Systems Online
           </div>
           <div className="flex items-center gap-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 px-3 py-1.5 rounded-full text-sm font-medium border border-rose-500/20">
-            <AlertTriangle className="h-4 w-4" /> 2 Active Alerts
+            <AlertTriangle className="h-4 w-4" /> {activeAlerts.length} Active Alerts
           </div>
         </div>
       </div>
+      
+      {criticalAlerts.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {criticalAlerts.map(alert => (
+            <div key={alert.id} role="alert" aria-live="assertive" className="flex items-center gap-3 bg-rose-500 text-white p-4 rounded-xl shadow-lg border border-rose-600">
+              <AlertTriangle className="h-6 w-6 shrink-0" />
+              <div>
+                <h3 className="font-bold">{alert.type.toUpperCase()} ALERT</h3>
+                <p className="text-rose-100">{alert.message}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
         {/* CCTV Feed */}

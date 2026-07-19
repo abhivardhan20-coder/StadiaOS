@@ -12,3 +12,7 @@ vi.stubGlobal('WebSocket', vi.fn(() => ({
   removeEventListener: vi.fn(),
   readyState: 0,
 })));
+if (typeof window !== "undefined" && window.HTMLElement) {
+  window.HTMLElement.prototype.scrollIntoView = function() {};
+}
+import '@testing-library/jest-dom';

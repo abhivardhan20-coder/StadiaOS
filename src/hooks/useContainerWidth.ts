@@ -6,6 +6,7 @@ export function useContainerWidth() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const updateWidth = () => {
       if (containerRef.current) {

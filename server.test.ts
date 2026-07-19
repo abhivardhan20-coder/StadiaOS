@@ -44,7 +44,8 @@ describe('POST /api/ops-copilot', () => {
   it('rejects an empty prompt with 400', async () => {
     const res = await request(app)
       .post('/api/ops-copilot')
-      .set('Cookie', [`token=${validToken}`])
+      .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
+      .set('x-csrf-token', 'test_csrf_token')
       .send({ prompt: '' });
     expect(res.status).toBe(400);
   });
@@ -52,7 +53,8 @@ describe('POST /api/ops-copilot', () => {
   it('accepts a valid payload with token', async () => {
     const res = await request(app)
       .post('/api/ops-copilot')
-      .set('Cookie', [`token=${validToken}`])
+      .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
+      .set('x-csrf-token', 'test_csrf_token')
       .send({ prompt: 'Show Gate 7 status' });
     expect(res.status).toBe(200);
   });
@@ -67,7 +69,8 @@ describe('POST /api/polyglot', () => {
   it('rejects an invalid payload with 400', async () => {
     const res = await request(app)
       .post('/api/polyglot')
-      .set('Cookie', [`token=${validToken}`])
+      .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
+      .set('x-csrf-token', 'test_csrf_token')
       .send({ targetLanguage: 'es' });
     expect(res.status).toBe(400);
   });
@@ -75,7 +78,8 @@ describe('POST /api/polyglot', () => {
   it('accepts a valid payload and returns 200', async () => {
     const res = await request(app)
       .post('/api/polyglot')
-      .set('Cookie', [`token=${validToken}`])
+      .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
+      .set('x-csrf-token', 'test_csrf_token')
       .send({ text: 'Hello', targetLanguage: 'es' });
     expect(res.status).toBe(200);
     expect(res.body.translatedText).toBe('test');
@@ -106,7 +110,8 @@ describe('POST /api/wayfinder', () => {
   it('rejects an invalid payload with 400', async () => {
     const res = await request(app)
       .post('/api/wayfinder')
-      .set('Cookie', [`token=${validToken}`])
+      .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
+      .set('x-csrf-token', 'test_csrf_token')
       .send({ stepFreeOnly: true });
     expect(res.status).toBe(400);
   });
@@ -114,7 +119,8 @@ describe('POST /api/wayfinder', () => {
   it('accepts a valid payload and returns 200', async () => {
     const res = await request(app)
       .post('/api/wayfinder')
-      .set('Cookie', [`token=${validToken}`])
+      .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
+      .set('x-csrf-token', 'test_csrf_token')
       .send({ destination: 'Gate A' });
     expect(res.status).toBe(200);
   });
@@ -158,7 +164,8 @@ describe('Rate Limiting', () => {
     for (let i = 0; i < 35; i++) {
       const res = await request(app)
         .post('/api/ops-copilot')
-        .set('Cookie', [`token=${validToken}`])
+        .set('Cookie', [`token=${validToken}`, `csrf_token=test_csrf_token`])
+        .set('x-csrf-token', 'test_csrf_token')
         .send({ prompt: 'Show Gate 7 status' });
       if (res.status === 429) {
         finalStatus = 429;

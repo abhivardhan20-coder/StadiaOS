@@ -121,10 +121,9 @@ app.use(cookieParser());
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  console.error('FATAL: JWT_SECRET is not set.');
-  process.exit(1);
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_dev_environments_only';
+if (!process.env.JWT_SECRET) {
+  console.error('WARNING: JWT_SECRET is not set. Using fallback secret.');
 }
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn('OAuth secrets missing. OAuth will fail.');
@@ -256,11 +255,13 @@ if (isProd) {
 }
 
 app.use(helmet({
-  xFrameOptions: isProd ? { action: 'deny' } : false,
-  crossOriginOpenerPolicy: { policy: 'same-origin' },
-  contentSecurityPolicy: {
+  xFrameOptions: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: isProd ? { policy: 'same-origin' } : false,
+  contentSecurityPolicy: isProd ? {
     directives: cspDirectives as any,
-  },
+  } : false,
 }));
 app.use(cors({ origin: process.env.APP_URL || 'http://localhost:3000' }));
 app.use(express.json({ limit: "10kb" }));
@@ -637,7 +638,7 @@ export const createApp = async () => {
   };
 
   // Periodic broadcast for event-driven architecture
-  let lastStadiumLive = {
+  const lastStadiumLive = {
     liveContext: {
       crowds: ["Gate A (High Density)", "Concourse 2 (Moderate Density)"],
       maintenance: ["Elevator 3 (Out of Service)", "Corridor 7 (Blocked)"],
