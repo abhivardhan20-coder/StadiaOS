@@ -54,11 +54,11 @@ function SettingToggle({ label, desc, recommended, value, onChange, isFavorite, 
           )}
         </AnimatePresence>
         
-        <button onClick={handleChange} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950 ${value ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
+        <button onClick={handleChange} aria-label={`Toggle ${label}`} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950 ${value ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${value ? 'translate-x-6' : 'translate-x-1'}`} />
         </button>
 
-        <button onClick={toggleFavorite} className="text-slate-400 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+        <button onClick={toggleFavorite} aria-label={`Toggle favorite for ${label}`} className="text-slate-400 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
           <Star className={`h-4 w-4 ${isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
         </button>
       </div>
@@ -111,7 +111,7 @@ function SettingSelect({ label, desc, options = [], value, onChange, recommended
           ))}
         </select>
 
-        <button onClick={toggleFavorite} className="text-slate-400 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+        <button onClick={toggleFavorite} aria-label={`Toggle favorite for ${label}`} className="text-slate-400 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
           <Star className={`h-4 w-4 ${isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
         </button>
       </div>
